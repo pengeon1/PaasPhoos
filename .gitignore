@@ -1,0 +1,8 @@
+build/
+bin/
+*.user
+*.suo
+*.VC.db
+.vs/
+external/juce/
+external/asiosdk/
