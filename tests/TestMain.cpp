@@ -5,6 +5,8 @@
 #include "../src/audio/RealtimeRingBuffer.h"
 #include "../src/audio/Metronome.h"
 #include "../src/audio/Tuner.h"
+#include "../src/network/NetworkPacket.h"
+#include "../src/network/NetworkStats.h"
 
 void testRingBuffer()
 {
@@ -92,16 +94,80 @@ void testTuner()
     std::cout << "  Tuner detected: " << noteName << " (" << result.frequency << " Hz, " << result.centsOffset << " cents) - PASSED!" << std::endl;
 }
 
+void testPacketSerialization()
+{
+    std::cout << "[TEST] Running Packet Serialization tests..." << std::endl;
+    paasphoos::PacketHeader header;
+    header.magic = paasphoos::PROTOCOL_MAGIC;
+    header.version = paasphoos::PROTOCOL_VERSION;
+    header.type = paasphoos::PacketType::AUDIO_PCM16;
+    header.participantId = 1;
+    header.channelCount = 2;
+    header.sequenceNumber = 42;
+    header.timestampUs = 123456789ULL;
+    header.sampleCount = 128;
+    header.payloadBytes = 512;
+
+    std::vector<uint8_t> buffer(sizeof(paasphoos::PacketHeader));
+    std::memcpy(buffer.data(), &header, sizeof(header));
+
+    paasphoos::PacketHeader decoded;
+    std::memcpy(&decoded, buffer.data(), sizeof(decoded));
+
+    assert(decoded.magic == paasphoos::PROTOCOL_MAGIC);
+    assert(decoded.version == 1);
+    assert(decoded.type == paasphoos::PacketType::AUDIO_PCM16);
+    assert(decoded.participantId == 1);
+    assert(decoded.channelCount == 2);
+    assert(decoded.sequenceNumber == 42);
+    assert(decoded.timestampUs == 123456789ULL);
+    assert(decoded.sampleCount == 128);
+    assert(decoded.payloadBytes == 512);
+
+    std::cout << "  Packet serialization passed!" << std::endl;
+}
+
+void testNetworkStats()
+{
+    std::cout << "[TEST] Running NetworkStats & Jitter calculation tests..." << std::endl;
+    paasphoos::NetworkStats stats;
+    stats.recordSentPacket();
+    stats.recordSentPacket();
+
+    assert(stats.getPacketsSent() == 2);
+    assert(stats.getHealthStatus() == paasphoos::ConnectionHealth::DISCONNECTED);
+
+    // Simulate RTT measurement (4.0 ms)
+    stats.recordRtt(4.0f, 1.5f, 1.5f, 2.0f);
+    assert(stats.getRttMs() == 4.0f);
+    // Total = In(1.5) + (RTT/2 = 2.0) + JitterBuf(2.0) + Out(1.5) = 7.0 ms
+    assert(std::abs(stats.getTotalLatencyMs() - 7.0f) < 0.1f);
+
+    // Simulate packet stream arrivals for jitter
+    uint64_t baseSendUs = 1000000;
+    uint64_t baseRecvUs = 1005000; // 5ms transit
+    stats.recordReceivedPacket(1, baseSendUs, baseRecvUs);
+    stats.recordReceivedPacket(2, baseSendUs + 2666, baseRecvUs + 2666 + 500); // 5.5ms transit (+0.5ms jitter)
+    stats.recordReceivedPacket(3, baseSendUs + 5333, baseRecvUs + 5333 - 300); // 4.7ms transit
+
+    assert(stats.getPacketsReceived() == 3);
+    assert(stats.getJitterMs() >= 0.0f);
+
+    std::cout << "  NetworkStats & Jitter passed! Total Latency: " << stats.getTotalLatencyMs() << " ms" << std::endl;
+}
+
 int main()
 {
-    std::cout << "========================================" << std::endl;
-    std::cout << "  Running PaasPhoos M1 Audio Test Suite " << std::endl;
-    std::cout << "========================================" << std::endl;
+    std::cout << "===========================================" << std::endl;
+    std::cout << "  Running PaasPhoos M1 + M2 Audio/Net Tests" << std::endl;
+    std::cout << "===========================================" << std::endl;
 
     testRingBuffer();
     testMetronome();
     testTuner();
+    testPacketSerialization();
+    testNetworkStats();
 
-    std::cout << "\nALL M1 TESTS PASSED SUCCESSFULLY!" << std::endl;
+    std::cout << "\nALL AUDIO AND NETWORK TESTS PASSED SUCCESSFULLY!" << std::endl;
     return 0;
 }

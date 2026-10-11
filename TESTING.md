@@ -78,3 +78,72 @@ This document contains the step-by-step verification procedures for each milesto
    - The center needle moves smoothly along the `-50b` to `+50#` scale.
    - When within ±3 cents of pitch, the note name glows vibrant emerald green and indicates "IN TUNE".
    - Exact frequency (Hz) and cent deviation are displayed with sub-Hz precision.
+
+---
+
+## Milestone 2 (M2) Test Checklist: LAN Mode (2 Users), Uncompressed Audio & Latency Stats
+
+### Features to Verify
+1. Host session creation and UDP broadcast beacon announcements.
+2. Automatic LAN discovery and 1-click Join.
+3. Direct manual IP/Port connection (`127.0.0.1:44045`).
+4. Two-user uncompressed linear 16-bit PCM streaming over UDP (<5 ms network latency).
+5. Live Diagnostics HUD: Ping (RTT), Jitter, Packet Loss %, and Total Ear-to-Ear Latency.
+6. Wi-Fi adapter detection warning banner.
+7. Remote Peer mixer strip with fader, pan, mute, solo, and peak meter.
+8. Single-PC testing using the included headless `PaasPhoosBot.exe`.
+
+### Test Procedures
+
+#### Test 1: Single-PC Two-User Test (Using Headless TestBot)
+*This test verifies the entire 2-user LAN audio and networking pipeline on a single computer without requiring a second machine or second musician.*
+
+1. Launch `PaasPhoos.exe`:
+   ```powershell
+   .\build\PaasPhoos_artefacts\Release\PaasPhoos.exe
+   ```
+2. In the top **Session & Network** panel:
+   - Click **START HOSTING**.
+   - Notice the status updates to: `HOSTING (127.0.0.1:44045)` with amber "WAITING FOR PEER" status.
+3. Open a separate terminal window and run the headless Test-Bot:
+   ```powershell
+   .\build\Release\PaasPhoosBot.exe 127.0.0.1 44045 330.0
+   ```
+4. **Expected Result in PaasPhoos:**
+   - The status badge instantly switches to vibrant green: `HOSTING (127.0.0.1)`.
+   - The **PEER: REMOTE** channel strip in the mixer console illuminates: its vertical LED peak meter dances with incoming audio!
+   - You hear rhythmic acoustic test pulses (330 Hz E4 note) playing through your headphones alongside your local instrument.
+   - Adjust the **PEER: REMOTE** fader: the bot's volume fades up and down independently of your local monitoring.
+   - Turn the **Pan** knob on the remote strip: the peer audio pans between your left and right ears.
+   - Press **Mute** or **Solo** on the peer strip: the bot is muted or soloed cleanly.
+5. **Expected Result in the Network Diagnostics HUD:**
+   - **Ping**: Shows `< 1.0 ms` (loopback / local subnet speed).
+   - **Jitter**: Shows `< 0.5 ms`.
+   - **Loss**: Shows `0.0%`.
+   - **Total Ear-to-Ear Latency**: Displays `~6 to 8 ms` (Hardware in/out + buffer + network transit).
+   - **Health Pill**: Displays vibrant emerald green `EXCELLENT (<15ms)`.
+6. Stop the bot by pressing `Ctrl+C` in its terminal.
+   - In PaasPhoos, the status smoothly switches back to waiting for peer.
+
+#### Test 2: Two-PC LAN Rehearsal Test (Across Local Wi-Fi / Ethernet Subnet)
+1. On **Computer A** (Band Member 1 - Host):
+   - Launch `PaasPhoos.exe`.
+   - Click **START HOSTING**. The host IP (e.g. `192.168.1.105:44045`) is displayed.
+2. On **Computer B** (Band Member 2 - Client):
+   - Launch `PaasPhoos.exe`.
+   - In the Join section, click **SCAN LAN**.
+   - **Expected result:** Computer A's session (`PaasPhoos Band Jam [1/6]`) automatically appears in the discovered dropdown!
+   - Click **JOIN SELECTED** (or type Computer A's IP into Direct Connect and click **DIRECT CONNECT**).
+3. **Expected result:**
+   - Both computers connect immediately.
+   - Musician A speaks/plays into their microphone: Musician B hears it instantly in their headphones with ultra-low latency (<5 ms network transit).
+   - Musician B plays guitar: Musician A hears it in their headphones via the **PEER: REMOTE** channel.
+   - Both screens display live sub-10ms network stats and health pills.
+
+#### Test 3: Wi-Fi Detection Warning
+1. Disconnect Ethernet and connect your PC to Wi-Fi.
+2. Launch `PaasPhoos.exe`.
+3. **Expected result:** An amber warning banner appears across the Session panel:
+   `⚠️ WI-FI DETECTED: Wireless jitter causes audio latency spikes. Use wired Ethernet for best rehearsal results.`
+4. Plug in an Ethernet cable: the warning disappears automatically.
+

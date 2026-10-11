@@ -58,6 +58,7 @@ private:
 
     std::unique_ptr<ChannelStripComponent> channel1Strip;
     std::unique_ptr<ChannelStripComponent> channel2Strip;
+    std::unique_ptr<ChannelStripComponent> remotePeerStrip;
     std::unique_ptr<ChannelStripComponent> masterStrip;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MixerPanel)

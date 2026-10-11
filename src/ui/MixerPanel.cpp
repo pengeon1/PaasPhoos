@@ -189,11 +189,14 @@ MixerPanel::MixerPanel(AudioEngine& engine)
     titleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(titleLabel);
 
-    channel1Strip = std::make_unique<ChannelStripComponent>("CH 1: GUITAR / INST", audioEngine.getChannel1(), false);
+    channel1Strip = std::make_unique<ChannelStripComponent>("CH 1: GUITAR", audioEngine.getChannel1(), false);
     addAndMakeVisible(*channel1Strip);
 
-    channel2Strip = std::make_unique<ChannelStripComponent>("CH 2: VOCAL / AUX", audioEngine.getChannel2(), false);
+    channel2Strip = std::make_unique<ChannelStripComponent>("CH 2: VOCAL", audioEngine.getChannel2(), false);
     addAndMakeVisible(*channel2Strip);
+
+    remotePeerStrip = std::make_unique<ChannelStripComponent>("PEER: REMOTE", audioEngine.getRemotePeer1(), false);
+    addAndMakeVisible(*remotePeerStrip);
 
     masterStrip = std::make_unique<ChannelStripComponent>("MASTER MONITOR", audioEngine.getChannel1(), true);
     masterStrip->setMasterVolumeControl(&audioEngine);
@@ -217,6 +220,10 @@ void MixerPanel::timerCallback()
     channel2Strip->updateMeters(ch2.peakLevel.load(std::memory_order_relaxed), 0.0f,
                                 ch2.clipDetected.load(std::memory_order_relaxed));
 
+    auto& peer = audioEngine.getRemotePeer1();
+    remotePeerStrip->updateMeters(peer.peakLevel.load(std::memory_order_relaxed), 0.0f,
+                                 peer.clipDetected.load(std::memory_order_relaxed));
+
     masterStrip->updateMeters(audioEngine.getMasterPeakLeft(), audioEngine.getMasterPeakRight(),
                               audioEngine.getMasterClipped());
 }
@@ -232,10 +239,11 @@ void MixerPanel::resized()
     titleLabel.setBounds(area.removeFromTop(22));
     area.removeFromTop(6);
 
-    int stripWidth = area.getWidth() / 3;
-    channel1Strip->setBounds(area.removeFromLeft(stripWidth).reduced(4));
-    channel2Strip->setBounds(area.removeFromLeft(stripWidth).reduced(4));
-    masterStrip->setBounds(area.reduced(4));
+    int stripWidth = area.getWidth() / 4;
+    channel1Strip->setBounds(area.removeFromLeft(stripWidth).reduced(3));
+    channel2Strip->setBounds(area.removeFromLeft(stripWidth).reduced(3));
+    remotePeerStrip->setBounds(area.removeFromLeft(stripWidth).reduced(3));
+    masterStrip->setBounds(area.reduced(3));
 }
 
 } // namespace paasphoos

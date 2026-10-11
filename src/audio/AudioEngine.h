@@ -8,6 +8,8 @@
 #include "Metronome.h"
 #include "Tuner.h"
 #include "RealtimeRingBuffer.h"
+#include "../network/LanAudioTransport.h"
+#include "../network/LanDiscovery.h"
 
 namespace paasphoos
 {
@@ -81,6 +83,12 @@ public:
     void setTuningInputChannel(int ch) noexcept { tuningInputChannel.store(ch, std::memory_order_relaxed); }
     int getTuningInputChannel() const noexcept { return tuningInputChannel.load(std::memory_order_relaxed); }
 
+    // Networking & Session (M2 LAN Mode)
+    LanAudioTransport& getLanTransport() { return lanTransport; }
+    LanDiscovery& getLanDiscovery() { return lanDiscovery; }
+    ChannelSettings& getRemotePeer1() { return remotePeer1; }
+    const ChannelSettings& getRemotePeer1() const { return remotePeer1; }
+
     // Diagnostic CPU Load
     double getCpuUsage() const;
 
@@ -93,6 +101,7 @@ private:
 
     ChannelSettings channel1; // Input 1: Guitar / Instrument
     ChannelSettings channel2; // Input 2: Vocal / Aux
+    ChannelSettings remotePeer1; // Remote Musician Channel Strip
 
     std::atomic<float> masterVolume{1.0f};
     std::atomic<float> masterPeakL{0.0f};
@@ -104,8 +113,12 @@ private:
     Metronome metronome;
     Tuner tuner;
 
+    LanAudioTransport lanTransport;
+    LanDiscovery lanDiscovery;
+
     // Temporary real-time buffers for mixing (pre-allocated)
     juce::AudioBuffer<float> localMixBuffer;
+    juce::AudioBuffer<float> remoteAudioBuffer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };

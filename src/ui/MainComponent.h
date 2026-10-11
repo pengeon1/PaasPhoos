@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "../audio/AudioEngine.h"
 #include "AudioSettingsPanel.h"
+#include "SessionPanel.h"
 #include "MixerPanel.h"
 #include "TunerComponent.h"
 #include "MetronomeComponent.h"
@@ -31,6 +32,7 @@ private:
     juce::Label cpuBadgeLabel;
 
     // Sub-panels
+    SessionPanel sessionPanel;
     AudioSettingsPanel audioSettingsPanel;
     MetronomeComponent metronomeComponent;
     MixerPanel mixerPanel;

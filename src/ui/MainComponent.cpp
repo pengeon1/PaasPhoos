@@ -5,6 +5,7 @@ namespace paasphoos
 
 MainComponent::MainComponent(AudioEngine& engine)
     : audioEngine(engine),
+      sessionPanel(engine),
       audioSettingsPanel(engine),
       metronomeComponent(engine),
       mixerPanel(engine),
@@ -21,7 +22,7 @@ MainComponent::MainComponent(AudioEngine& engine)
     subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(subtitleLabel);
 
-    modeBadgeLabel.setText("STANDALONE / M1 ENGINE", juce::dontSendNotification);
+    modeBadgeLabel.setText("LAN MODE / M2 ENGINE", juce::dontSendNotification);
     modeBadgeLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
     modeBadgeLabel.setJustificationType(juce::Justification::centred);
     modeBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e293b));
@@ -35,6 +36,7 @@ MainComponent::MainComponent(AudioEngine& engine)
     cpuBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa5b4fc));
     addAndMakeVisible(cpuBadgeLabel);
 
+    addAndMakeVisible(sessionPanel);
     addAndMakeVisible(audioSettingsPanel);
     addAndMakeVisible(metronomeComponent);
     addAndMakeVisible(mixerPanel);
@@ -52,7 +54,7 @@ MainComponent::MainComponent(AudioEngine& engine)
     mmcssStatusLabel.setColour(juce::Label::textColourId, juce::Colour(0xff10b981));
     addAndMakeVisible(mmcssStatusLabel);
 
-    setSize(980, 680);
+    setSize(1040, 750);
     startTimerHz(10); // 10 Hz refresh for status and CPU
 }
 
@@ -110,19 +112,22 @@ void MainComponent::resized()
     headerArea.removeFromRight(8);
     modeBadgeLabel.setBounds(headerArea.removeFromRight(170).reduced(0, 4));
 
-    area.reduce(10, 8);
+    area.reduce(10, 6);
 
-    // Top Row: Audio Settings Panel + Metronome
-    auto topRow = area.removeFromTop(120);
-    audioSettingsPanel.setBounds(topRow.removeFromLeft(topRow.getWidth() * 0.58).reduced(4));
-    metronomeComponent.setBounds(topRow.reduced(4));
+    // Row 1: Session & Network LAN Panel
+    sessionPanel.setBounds(area.removeFromTop(108).reduced(2));
+    area.removeFromTop(6);
 
-    area.removeFromTop(8);
+    // Row 2: Audio Settings Panel + Metronome
+    auto row2 = area.removeFromTop(116);
+    audioSettingsPanel.setBounds(row2.removeFromLeft(row2.getWidth() * 0.56).reduced(3));
+    metronomeComponent.setBounds(row2.reduced(3));
+    area.removeFromTop(6);
 
-    // Middle Row: Mixer Console (Left 60%) + Tuner (Right 40%)
-    int mixerWidth = static_cast<int>(area.getWidth() * 0.60);
-    mixerPanel.setBounds(area.removeFromLeft(mixerWidth).reduced(4));
-    tunerComponent.setBounds(area.reduced(4));
+    // Row 3: Mixer Console (Left 65%) + Tuner (Right 35%)
+    int mixerWidth = static_cast<int>(area.getWidth() * 0.65);
+    mixerPanel.setBounds(area.removeFromLeft(mixerWidth).reduced(3));
+    tunerComponent.setBounds(area.reduced(3));
 }
 
 } // namespace paasphoos

@@ -44,8 +44,18 @@ target_sources(PaasPhoos PRIVATE
     src/audio/Metronome.h
     src/audio/Tuner.h
     src/audio/RealtimeRingBuffer.h
+    src/network/NetworkPacket.h
+    src/network/NetworkStats.h
+    src/network/NetworkAdapterDetector.h
+    src/network/NetworkAdapterDetector.cpp
+    src/network/LanDiscovery.h
+    src/network/LanDiscovery.cpp
+    src/network/LanAudioTransport.h
+    src/network/LanAudioTransport.cpp
     src/ui/MainComponent.h
     src/ui/MainComponent.cpp
+    src/ui/SessionPanel.h
+    src/ui/SessionPanel.cpp
     src/ui/AudioSettingsPanel.h
     src/ui/AudioSettingsPanel.cpp
     src/ui/MixerPanel.h
@@ -98,7 +108,31 @@ target_link_libraries(PaasPhoos PRIVATE
 )
 
 if(WIN32)
-    target_link_libraries(PaasPhoos PRIVATE avrt winmm)
+    target_link_libraries(PaasPhoos PRIVATE avrt winmm iphlpapi ws2_32)
+endif()
+
+# Headless Test-Bot Client
+add_executable(PaasPhoosBot
+    tools/TestBot.cpp
+)
+
+target_include_directories(PaasPhoosBot PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_definitions(PaasPhoosBot PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    NOMINMAX=1
+    WIN32_LEAN_AND_MEAN=1
+)
+
+target_link_libraries(PaasPhoosBot PRIVATE
+    juce::juce_core
+)
+
+if(WIN32)
+    target_link_libraries(PaasPhoosBot PRIVATE avrt winmm iphlpapi ws2_32)
 endif()
 
 # Unit Tests Executable
@@ -121,6 +155,10 @@ target_link_libraries(PaasPhoosTests PRIVATE
     juce::juce_core
     juce::juce_audio_basics
 )
+
+if(WIN32)
+    target_link_libraries(PaasPhoosTests PRIVATE avrt winmm iphlpapi ws2_32)
+endif()
 
 enable_testing()
 add_test(NAME PaasPhoosAudioTests COMMAND PaasPhoosTests)
