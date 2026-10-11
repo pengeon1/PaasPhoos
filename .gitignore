@@ -1,8 +1,60 @@
+# ==========================================
+# PaasPhoos - Git Ignore Configuration
+# ==========================================
+
+# Build directories & outputs
 build/
 bin/
-*.user
-*.suo
-*.VC.db
-.vs/
+out/
+target/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.obj
+*.lib
+*.exp
+
+# CMake artifacts
+CMakeFiles/
+CMakeScripts/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# External downloaded SDKs and Submodules
 external/juce/
 external/asiosdk/
+external/opus/
+
+# Visual Studio files
+.vs/
+*.sln.docstates
+*.user
+*.suo
+*.useros
+*.sln.ide
+*.VC.db
+*.VC.opendb
+*.vcxproj.user
+
+# JetBrains / CLion / VSCode
+.idea/
+.vscode/
+cmake-build-*/
+
+# Temporary recordings, audio stems, crash dumps
+recordings/
+*.wav
+*.mp3
+*.flac
+*.dmp
+*.log
+crash_reports/
+
+# OS specific files
+Thumbs.db
+Desktop.ini
+.DS_Store

@@ -1,0 +1,24 @@
+name: PaasPhoos CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: cmake -B build -S .
+
+    - name: Build PaasPhoos & Unit Tests
+      run: cmake --build build --config Release --parallel
+
+    - name: Run Unit Tests
+      run: .\build\Release\PaasPhoosTests.exe
