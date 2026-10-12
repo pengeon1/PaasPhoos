@@ -44,10 +44,16 @@ if (Test-Path $testsExe) {
     Write-Host "[OK] Copied PaasPhoosTests.exe" -ForegroundColor Green
 }
 
-# 3. Copy Documentation
+# 3. Copy Documentation & Resources
 Copy-Item -Path (Join-Path $projectRoot "README.md") -Destination $packageDir -Force
 Copy-Item -Path (Join-Path $projectRoot "ARCHITECTURE.md") -Destination $packageDir -Force
 Copy-Item -Path (Join-Path $projectRoot "TESTING.md") -Destination $packageDir -Force
+
+$resFolder = Join-Path $projectRoot "resources"
+if (Test-Path $resFolder) {
+    Copy-Item -Recurse -Path $resFolder -Destination $packageDir -Force
+    Write-Host "[OK] Copied resources folder (logo, assets)" -ForegroundColor Green
+}
 
 # 4. Create Quick Start batch file
 $quickStartContent = @"

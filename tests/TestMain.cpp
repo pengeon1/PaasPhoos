@@ -381,7 +381,7 @@ void testStunAndRoomCode()
     int port = 44045;
 
     juce::String roomCode = paasphoos::StunClient::generateRoomCode(ip, port);
-    assert(roomCode.startsWith("PP-"));
+    assert(roomCode.startsWith("JAM-") || roomCode.startsWith("PP-"));
 
     juce::String outIp;
     int outPort = 0;

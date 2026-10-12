@@ -15,7 +15,7 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
     nameLabel.setText(name, juce::dontSendNotification);
     nameLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
     nameLabel.setJustificationType(juce::Justification::centred);
-    nameLabel.setColour(juce::Label::textColourId, isMaster ? juce::Colour(0xff38bdf8) : juce::Colour(0xffe2e8f0));
+    nameLabel.setColour(juce::Label::textColourId, isMaster ? juce::Colour(0xffff7700) : juce::Colour(0xffe2e8f0));
     addAndMakeVisible(nameLabel);
 
     subLabel.setText(sub, juce::dontSendNotification);
@@ -137,9 +137,9 @@ void ChannelStripComponent::setActive(bool active)
     {
         isActiveState = active;
         nameLabel.setColour(juce::Label::textColourId,
-                            active ? (isMaster ? juce::Colour(0xff38bdf8) : juce::Colour(0xfff8fafc))
+                            active ? (isMaster ? juce::Colour(0xffff7700) : juce::Colour(0xfff8fafc))
                                    : juce::Colour(0xff64748b));
-        subLabel.setColour(juce::Label::textColourId, active ? juce::Colour(0xffa5b4fc) : juce::Colour(0xff475569));
+        subLabel.setColour(juce::Label::textColourId, active ? juce::Colour(0xffffaa33) : juce::Colour(0xff475569));
         gainFader.setEnabled(active);
         panKnob.setEnabled(active);
         muteButton.setEnabled(active);
@@ -158,8 +158,8 @@ void ChannelStripComponent::updateMeters(float peakL, float peakR, bool clipped)
 
 void ChannelStripComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(isActiveState ? juce::Colour(0xff16181f) : juce::Colour(0xff101115));
-    g.setColour(isActiveState ? juce::Colour(0xff27272a) : juce::Colour(0xff18181b));
+    g.fillAll(isActiveState ? juce::Colour(0xff14151b) : juce::Colour(0xff090a0d));
+    g.setColour(isActiveState ? juce::Colour(0xff2a2d36) : juce::Colour(0xff1a1b22));
     g.drawRect(getLocalBounds(), 1);
 
     // Level Meter
@@ -169,7 +169,7 @@ void ChannelStripComponent::paint(juce::Graphics& g)
     int meterW = isMaster ? 12 : 6;
     int meterH = faderBounds.getHeight() - 20;
 
-    g.setColour(juce::Colour(0xff090a0f));
+    g.setColour(juce::Colour(0xff090a0d));
     g.fillRoundedRectangle((float)meterX, (float)meterY, (float)meterW, (float)meterH, 1.5f);
 
     auto drawSingleMeter = [&](int x, int w, float peak)
@@ -177,9 +177,9 @@ void ChannelStripComponent::paint(juce::Graphics& g)
         float filledHeight = juce::jlimit(0.0f, 1.0f, peak) * meterH;
         float fillY = (meterY + meterH) - filledHeight;
 
-        juce::ColourGradient grad(juce::Colour(0xff22c55e), (float)x, (float)(meterY + meterH),
-                                  juce::Colour(0xffef4444), (float)x, (float)meterY, false);
-        grad.addColour(0.7, juce::Colour(0xffeab308));
+        juce::ColourGradient grad(juce::Colour(0xffffaa33), (float)x, (float)(meterY + meterH),
+                                  juce::Colour(0xffff2200), (float)x, (float)meterY, false);
+        grad.addColour(0.65, juce::Colour(0xffff6600));
         g.setGradientFill(grad);
         g.fillRoundedRectangle((float)x, fillY, (float)w, filledHeight, 1.5f);
     };
@@ -315,7 +315,7 @@ void MixerPanel::timerCallback()
 
 void MixerPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff121316));
+    g.fillAll(juce::Colour(0xff090a0d));
 }
 
 void MixerPanel::resized()

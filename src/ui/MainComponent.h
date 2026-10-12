@@ -31,6 +31,7 @@ private:
     AudioEngine& audioEngine;
 
     // Header Components
+    juce::Image logoImage;
     juce::Label logoLabel;
     juce::Label subtitleLabel;
     juce::Label modeBadgeLabel;

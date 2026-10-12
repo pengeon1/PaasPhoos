@@ -120,19 +120,23 @@ juce::String StunClient::generateRoomCode(const juce::String& ip, int port)
         uint16_t p = static_cast<uint16_t>(port & 0xFFFF);
 
         char buf[32];
-        std::snprintf(buf, sizeof(buf), "PP-%02X%02X%02X%02X-%04X", a, b, c, d, p);
+        std::snprintf(buf, sizeof(buf), "JAM-%02X%02X%02X%02X-%04X", a, b, c, d, p);
         return juce::String(buf);
     }
 
     juce::String raw = ip + ":" + juce::String(port);
-    return juce::String("PP-") + juce::Base64::toBase64(raw.toRawUTF8(), raw.getNumBytesAsUTF8());
+    return juce::String("JAM-") + juce::Base64::toBase64(raw.toRawUTF8(), raw.getNumBytesAsUTF8());
 }
 
 bool StunClient::parseRoomCode(const juce::String& roomCode, juce::String& outIp, int& outPort)
 {
     juce::String code = roomCode.trim();
-    if (code.startsWithIgnoreCase("PP-"))
+    if (code.startsWithIgnoreCase("JAM-"))
+        code = code.substring(4);
+    else if (code.startsWithIgnoreCase("PP-"))
         code = code.substring(3);
+    else if (code.startsWithIgnoreCase("PAAS-"))
+        code = code.substring(5);
 
     // 1. Try Compact Hex format: XXXXXXXX-XXXX or XXXXXXXXXXXX
     juce::String cleanHex = code.replace("-", "").toUpperCase();

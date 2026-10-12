@@ -11,7 +11,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     headerLabel.setText("DRUM MACHINE & SYNTH ENGINE (M5)", juce::dontSendNotification);
     headerLabel.setFont(juce::FontOptions(12.5f, juce::Font::bold));
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(headerLabel);
 
     enableToggle.setButtonText("DRUMS ON");
@@ -25,19 +25,19 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
     addAndMakeVisible(enableToggle);
 
     playButton.setButtonText("PLAY");
-    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff047857));
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
     playButton.onClick = [this]()
     {
         bool playing = !drumSequencer.getPlaying();
         drumSequencer.setPlaying(playing);
         enableToggle.setToggleState(playing, juce::dontSendNotification);
         playButton.setButtonText(playing ? "PAUSE" : "PLAY");
-        playButton.setColour(juce::TextButton::buttonColourId, playing ? juce::Colour(0xffb45309) : juce::Colour(0xff047857));
+        playButton.setColour(juce::TextButton::buttonColourId, playing ? juce::Colour(0xffcc4400) : juce::Colour(0xffff6600));
     };
     addAndMakeVisible(playButton);
 
     fillButton.setButtonText("FILL");
-    fillButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c3aed));
+    fillButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff7700));
     fillButton.onClick = [this]() { drumSequencer.triggerFill(); };
     addAndMakeVisible(fillButton);
 
@@ -114,7 +114,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     // Export MIDI
     exportMidiButton.setButtonText("EXPORT MIDI");
-    exportMidiButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff0369a1));
+    exportMidiButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
     exportMidiButton.onClick = [this]()
     {
         juce::File exportFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory).getChildFile("PaasPhoos_Drums.mid");
@@ -131,7 +131,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
     for (int i = 0; i < DrumEngine::NUM_VOICES; ++i)
     {
         padButtons[i].setButtonText(hotkeys[i]);
-        padButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e293b));
+        padButtons[i].setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a22));
         padButtons[i].onClick = [this, i]()
         {
             drumEngine.triggerVoice(static_cast<DrumSound>(i), 0.9f);
@@ -155,8 +155,8 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
             auto btn = std::make_unique<juce::TextButton>();
             btn->setButtonText("");
             btn->setClickingTogglesState(true);
-            btn->setColour(juce::TextButton::buttonColourId, (s % 4 == 0) ? juce::Colour(0xff1e222d) : juce::Colour(0xff12141a));
-            btn->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xff06b6d4)); // Cyan LED
+            btn->setColour(juce::TextButton::buttonColourId, (s % 4 == 0) ? juce::Colour(0xff1c1e26) : juce::Colour(0xff101116));
+            btn->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffff6600)); // Flame Orange LED
             btn->onClick = [this, t, s]()
             {
                 drumSequencer.toggleStep(t, s);
@@ -211,8 +211,8 @@ void DrumPanel::timerCallback()
 
 void DrumPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff13161c));
-    g.setColour(juce::Colour(0xff27272a));
+    g.fillAll(juce::Colour(0xff090a0d));
+    g.setColour(juce::Colour(0xff22252e));
     g.drawRect(getLocalBounds(), 1);
 
     // Draw active step playback cursor
@@ -221,7 +221,7 @@ void DrumPanel::paint(juce::Graphics& g)
         auto firstBtn = stepButtons[0][lastDrawnStep]->getBounds();
         auto lastBtn = stepButtons[DrumEngine::NUM_VOICES - 1][lastDrawnStep]->getBounds();
 
-        g.setColour(juce::Colour(0x3338bdf8));
+        g.setColour(juce::Colour(0x55ff6600));
         g.fillRoundedRectangle((float)firstBtn.getX() - 1, (float)firstBtn.getY() - 2,
                                (float)firstBtn.getWidth() + 2, (float)(lastBtn.getBottom() - firstBtn.getY() + 4), 2.0f);
     }

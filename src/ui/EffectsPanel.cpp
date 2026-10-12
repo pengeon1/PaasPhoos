@@ -11,7 +11,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
 
     headerLabel.setText("GUITAR & VOCAL FX RACK (DSP + VST3 HOST)", juce::dontSendNotification);
     headerLabel.setFont(juce::FontOptions(12.5f, juce::Font::bold));
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(headerLabel);
 
     masterFxToggle.setButtonText("FX ON");
@@ -135,7 +135,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     // VST3 Hosting Section
     vst3SectionLabel.setText("VST3 HOST:", juce::dontSendNotification);
     vst3SectionLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
-    vst3SectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa5b4fc));
+    vst3SectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(vst3SectionLabel);
 
     scanPluginsButton.setButtonText("SCAN VST3");
@@ -147,7 +147,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     addAndMakeVisible(pluginListCombo);
 
     loadPluginButton.setButtonText("LOAD");
-    loadPluginButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff0284c7));
+    loadPluginButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
     loadPluginButton.onClick = [this]()
     {
         int idx = pluginListCombo.getSelectedId() - 1;
@@ -192,8 +192,8 @@ void EffectsPanel::refreshPluginList()
 
 void EffectsPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff121419));
-    g.setColour(juce::Colour(0xff27272a));
+    g.fillAll(juce::Colour(0xff090a0d));
+    g.setColour(juce::Colour(0xff22252e));
     g.drawRect(getLocalBounds(), 1);
 }
 

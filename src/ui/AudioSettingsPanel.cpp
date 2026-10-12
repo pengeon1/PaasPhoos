@@ -222,8 +222,8 @@ void AudioSettingsPanel::updateLatencyBadge()
 
 void AudioSettingsPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff181a20));
-    g.setColour(juce::Colour(0xff27272a));
+    g.fillAll(juce::Colour(0xff090a0d));
+    g.setColour(juce::Colour(0xff22252e));
     g.drawRect(getLocalBounds(), 1);
 }
 

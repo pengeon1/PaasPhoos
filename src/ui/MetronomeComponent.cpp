@@ -13,8 +13,8 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
 
     // Play / Stop button
     playButton.setButtonText("START CLICK");
-    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e293b));
-    playButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xff059669));
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a22));
+    playButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffff6600));
     playButton.setClickingTogglesState(true);
     playButton.onClick = [this]()
     {
@@ -28,8 +28,8 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
     bpmDisplayLabel.setText("120 BPM", juce::dontSendNotification);
     bpmDisplayLabel.setFont(juce::FontOptions(16.0f, juce::Font::bold));
     bpmDisplayLabel.setJustificationType(juce::Justification::centred);
-    bpmDisplayLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff101216));
-    bpmDisplayLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff8fafc));
+    bpmDisplayLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff090a0d));
+    bpmDisplayLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(bpmDisplayLabel);
 
     // Minus / Plus buttons
@@ -64,6 +64,7 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
 
     // Tap Tempo
     tapTempoButton.setButtonText("TAP");
+    tapTempoButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff22252e));
     tapTempoButton.onClick = [this]() { handleTapTempo(); };
     addAndMakeVisible(tapTempoButton);
 
@@ -148,8 +149,8 @@ void MetronomeComponent::timerCallback()
 
 void MetronomeComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff181a20));
-    g.setColour(juce::Colour(0xff27272a));
+    g.fillAll(juce::Colour(0xff090a0d));
+    g.setColour(juce::Colour(0xff22252e));
     g.drawRect(getLocalBounds(), 1);
 
     // Draw visual beat LEDs
@@ -176,11 +177,11 @@ void MetronomeComponent::paint(juce::Graphics& g)
         juce::Colour dotColor;
         if (isActiveBeat)
         {
-            dotColor = isDownbeat ? juce::Colour(0xfff59e0b) : juce::Colour(0xff06b6d4);
+            dotColor = isDownbeat ? juce::Colour(0xffffaa33) : juce::Colour(0xffff6600);
         }
         else
         {
-            dotColor = juce::Colour(0xff334155);
+            dotColor = juce::Colour(0xff1f2129);
         }
 
         g.setColour(dotColor);

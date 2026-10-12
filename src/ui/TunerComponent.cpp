@@ -46,8 +46,8 @@ void TunerComponent::timerCallback()
 
 void TunerComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff181a20));
-    g.setColour(juce::Colour(0xff27272a));
+    g.fillAll(juce::Colour(0xff090a0d));
+    g.setColour(juce::Colour(0xff22252e));
     g.drawRect(getLocalBounds(), 1);
 
     auto bounds = getLocalBounds().reduced(12);
@@ -55,14 +55,14 @@ void TunerComponent::paint(juce::Graphics& g)
 
     // Background card for tuner gauge
     auto gaugeBounds = bounds.toFloat();
-    g.setColour(juce::Colour(0xff101216));
+    g.setColour(juce::Colour(0xff12131a));
     g.fillRoundedRectangle(gaugeBounds, 6.0f);
-    g.setColour(juce::Colour(0xff2d3342));
+    g.setColour(juce::Colour(0xff2a2d36));
     g.drawRoundedRectangle(gaugeBounds, 6.0f, 1.0f);
 
     if (!currentResult.isActive)
     {
-        g.setColour(juce::Colour(0xff475569));
+        g.setColour(juce::Colour(0xff64748b));
         g.setFont(juce::FontOptions(36.0f, juce::Font::bold));
         g.drawText("--", gaugeBounds.removeFromTop(60.0f), juce::Justification::centred);
 
@@ -78,7 +78,7 @@ void TunerComponent::paint(juce::Graphics& g)
     // Note name display
     auto noteArea = gaugeBounds.removeFromTop(55.0f);
     juce::Colour noteColor = inTune ? juce::Colour(0xff10b981) :
-                             (std::abs(cents) <= 12.0f ? juce::Colour(0xfff59e0b) : juce::Colour(0xffef4444));
+                             (std::abs(cents) <= 12.0f ? juce::Colour(0xffffaa33) : juce::Colour(0xffff5533));
     g.setColour(noteColor);
     g.setFont(juce::FontOptions(42.0f, juce::Font::bold));
     g.drawText(noteName, noteArea, juce::Justification::centred);
@@ -92,7 +92,7 @@ void TunerComponent::paint(juce::Graphics& g)
 
     // Cents Needle / Meter Bar
     auto meterArea = gaugeBounds.removeFromTop(32.0f).reduced(20.0f, 4.0f);
-    g.setColour(juce::Colour(0xff1e293b));
+    g.setColour(juce::Colour(0xff181a22));
     g.fillRoundedRectangle(meterArea, 4.0f);
 
     float centerX = meterArea.getCentreX();

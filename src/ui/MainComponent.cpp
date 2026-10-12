@@ -14,29 +14,40 @@ MainComponent::MainComponent(AudioEngine& engine)
       drumPanel(engine.getDrumEngine(), engine.getDrumSequencer()),
       rehearsalToolsPanel(engine.getSessionRecorder(), engine.getSetlistManager(), engine.getChatTalkback(), engine.getNetworkSimulator(), engine)
 {
+    // Try to load generated brand logo from resources
+    auto logoFile = juce::File::getCurrentWorkingDirectory().getChildFile("resources/logo.jpg");
+    if (!logoFile.existsAsFile())
+    {
+        logoFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("resources/logo.jpg");
+    }
+    if (logoFile.existsAsFile())
+    {
+        logoImage = juce::ImageFileFormat::loadFrom(logoFile);
+    }
+
     // Logo & Header
     logoLabel.setText("PAASPHOOS", juce::dontSendNotification);
     logoLabel.setFont(juce::FontOptions(22.0f, juce::Font::bold));
-    logoLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
+    logoLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff6600)); // Glowing Flame Orange
     addAndMakeVisible(logoLabel);
 
     subtitleLabel.setText("Ultra-Low Latency Band Jamming Console", juce::dontSendNotification);
-    subtitleLabel.setFont(juce::FontOptions(12.0f));
-    subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
+    subtitleLabel.setFont(juce::FontOptions(11.5f));
+    subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff9ca3af));
     addAndMakeVisible(subtitleLabel);
 
-    modeBadgeLabel.setText("INTERNET & LAN / M1-M7 COMPLETE", juce::dontSendNotification);
-    modeBadgeLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    modeBadgeLabel.setText("STUDIO JAM ENGINE / ONLINE", juce::dontSendNotification);
+    modeBadgeLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
     modeBadgeLabel.setJustificationType(juce::Justification::centred);
-    modeBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e293b));
-    modeBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
+    modeBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1f130b));
+    modeBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
     addAndMakeVisible(modeBadgeLabel);
 
     cpuBadgeLabel.setText("CPU: 0.0%", juce::dontSendNotification);
-    cpuBadgeLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    cpuBadgeLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
     cpuBadgeLabel.setJustificationType(juce::Justification::centred);
-    cpuBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff0f172a));
-    cpuBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa5b4fc));
+    cpuBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff15161c));
+    cpuBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(cpuBadgeLabel);
 
     // View Navigation Buttons
@@ -74,13 +85,13 @@ MainComponent::MainComponent(AudioEngine& engine)
     // Status Bar
     statusBarLabel.setText("Ready: Audio Engine Initialized", juce::dontSendNotification);
     statusBarLabel.setFont(juce::FontOptions(11.0f));
-    statusBarLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
+    statusBarLabel.setColour(juce::Label::textColourId, juce::Colour(0xff9ca3af));
     addAndMakeVisible(statusBarLabel);
 
     mmcssStatusLabel.setText("MMCSS: Pro Audio Active", juce::dontSendNotification);
     mmcssStatusLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
     mmcssStatusLabel.setJustificationType(juce::Justification::centredRight);
-    mmcssStatusLabel.setColour(juce::Label::textColourId, juce::Colour(0xff10b981));
+    mmcssStatusLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
     addAndMakeVisible(mmcssStatusLabel);
 
     setSize(1280, 840);
@@ -102,8 +113,8 @@ void MainComponent::switchView(int viewIndex)
     drumPanel.setVisible(viewIndex == 2);
     rehearsalToolsPanel.setVisible(viewIndex == 3);
 
-    auto activeColor = juce::Colour(0xff0284c7);
-    auto idleColor = juce::Colour(0xff1e293b);
+    auto activeColor = juce::Colour(0xffff6600); // Electric flame orange
+    auto idleColor = juce::Colour(0xff16171f);   // Obsidian carbon dark
 
     viewMixerBtn.setColour(juce::TextButton::buttonColourId, (viewIndex == 0) ? activeColor : idleColor);
     viewFxBtn.setColour(juce::TextButton::buttonColourId, (viewIndex == 1) ? activeColor : idleColor);
@@ -132,15 +143,47 @@ void MainComponent::timerCallback()
 
 void MainComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff0f1115));
+    // Deep obsidian black background
+    g.fillAll(juce::Colour(0xff090a0d));
 
-    // Top Header separator
-    g.setColour(juce::Colour(0xff1e222a));
+    // Draw Brand Logo Icon in header (x = 10, y = 8, w = 38, h = 38)
+    if (logoImage.isValid())
+    {
+        g.drawImage(logoImage, 10, 8, 38, 38, 0, 0, logoImage.getWidth(), logoImage.getHeight());
+    }
+    else
+    {
+        // Custom Glowing Vector Logo: Neon Orange Headphone + Audio Wave Pick
+        juce::Rectangle<float> logoBounds(10.0f, 8.0f, 38.0f, 38.0f);
+        g.setColour(juce::Colour(0xff1a1410));
+        g.fillRoundedRectangle(logoBounds, 8.0f);
+        g.setColour(juce::Colour(0xffff6600));
+        g.drawRoundedRectangle(logoBounds, 8.0f, 1.5f);
+
+        // Headphone Arc
+        juce::Path arc;
+        arc.addCentredArc(logoBounds.getCentreX(), logoBounds.getCentreY() + 1.0f, 12.0f, 12.0f, 0.0f, -juce::MathConstants<float>::pi * 0.75f, juce::MathConstants<float>::pi * 0.75f, true);
+        g.setColour(juce::Colour(0xffffaa33));
+        g.strokePath(arc, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+
+        // Soundwave center
+        juce::Path wave;
+        wave.startNewSubPath(logoBounds.getCentreX() - 9.0f, logoBounds.getCentreY() + 1.0f);
+        wave.lineTo(logoBounds.getCentreX() - 4.0f, logoBounds.getCentreY() - 7.0f);
+        wave.lineTo(logoBounds.getCentreX(), logoBounds.getCentreY() + 8.0f);
+        wave.lineTo(logoBounds.getCentreX() + 4.0f, logoBounds.getCentreY() - 5.0f);
+        wave.lineTo(logoBounds.getCentreX() + 9.0f, logoBounds.getCentreY() + 1.0f);
+        g.setColour(juce::Colour(0xffff6600));
+        g.strokePath(wave, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    }
+
+    // Top Header separator (charcoal with subtle warm amber tint)
+    g.setColour(juce::Colour(0xff22242e));
     g.drawLine(0.0f, 54.0f, (float)getWidth(), 54.0f, 1.0f);
 
-    // Bottom Status Bar background
+    // Bottom Status Bar background (obsidian carbon)
     g.fillRect(0, getHeight() - 26, getWidth(), 26);
-    g.setColour(juce::Colour(0xff27272a));
+    g.setColour(juce::Colour(0xff22242e));
     g.drawLine(0.0f, (float)getHeight() - 26.0f, (float)getWidth(), (float)getHeight() - 26.0f, 1.0f);
 }
 
@@ -154,18 +197,19 @@ void MainComponent::resized()
     statusBarLabel.setBounds(statusArea);
 
     // Header Bar
-    auto headerArea = area.removeFromTop(54).reduced(12, 6);
+    auto headerArea = area.removeFromTop(54).reduced(10, 6);
+    headerArea.removeFromLeft(44); // Space for logo icon (x: 10, w: 38)
     auto titleArea = headerArea.removeFromLeft(360);
     logoLabel.setBounds(titleArea.removeFromTop(24));
     subtitleLabel.setBounds(titleArea);
 
     cpuBadgeLabel.setBounds(headerArea.removeFromRight(120).reduced(0, 4));
     headerArea.removeFromRight(8);
-    modeBadgeLabel.setBounds(headerArea.removeFromRight(220).reduced(0, 4));
+    modeBadgeLabel.setBounds(headerArea.removeFromRight(200).reduced(0, 4));
 
     area.reduce(10, 4);
 
-    // Row 1: Session & Network LAN Panel
+    // Row 1: Session & Jam Code Network Panel
     sessionPanel.setBounds(area.removeFromTop(110).reduced(2));
     area.removeFromTop(4);
 
