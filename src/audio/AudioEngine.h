@@ -9,6 +9,14 @@
 #include "Metronome.h"
 #include "Tuner.h"
 #include "RealtimeRingBuffer.h"
+#include "BuiltInFxChain.h"
+#include "PluginHostManager.h"
+#include "DrumEngine.h"
+#include "DrumSequencer.h"
+#include "SessionRecorder.h"
+#include "../session/SetlistManager.h"
+#include "../session/ChatTalkback.h"
+#include "../network/NetworkSimulator.h"
 #include "../network/LanAudioTransport.h"
 #include "../network/LanDiscovery.h"
 
@@ -95,7 +103,21 @@ public:
     void setTuningInputChannel(int ch) noexcept { tuningInputChannel.store(ch, std::memory_order_relaxed); }
     int getTuningInputChannel() const noexcept { return tuningInputChannel.load(std::memory_order_relaxed); }
 
-    // Networking & Session (M3 Multi-Peer LAN Mode)
+    // M4: FX Chain & VST3 Hosting
+    BuiltInFxChain& getBuiltInFx() { return builtInFx; }
+    PluginHostManager& getPluginHostManager() { return pluginHostManager; }
+
+    // M5: Drum Machine Subsystem
+    DrumEngine& getDrumEngine() { return drumEngine; }
+    DrumSequencer& getDrumSequencer() { return drumSequencer; }
+
+    // M6 & M7: Rehearsal, Recording, Setlist, Chat, Sim
+    SessionRecorder& getSessionRecorder() { return sessionRecorder; }
+    SetlistManager& getSetlistManager() { return setlistManager; }
+    ChatTalkback& getChatTalkback() { return chatTalkback; }
+    NetworkSimulator& getNetworkSimulator() { return networkSimulator; }
+
+    // Networking & Session (Multi-Peer LAN / Internet Mode)
     LanAudioTransport& getLanTransport() { return lanTransport; }
     LanDiscovery& getLanDiscovery() { return lanDiscovery; }
 
@@ -123,11 +145,25 @@ private:
     Metronome metronome;
     Tuner tuner;
 
+    BuiltInFxChain builtInFx;
+    PluginHostManager pluginHostManager;
+
+    DrumEngine drumEngine;
+    DrumSequencer drumSequencer;
+
+    SessionRecorder sessionRecorder;
+    SetlistManager setlistManager;
+    ChatTalkback chatTalkback;
+    NetworkSimulator networkSimulator;
+
     LanAudioTransport lanTransport;
     LanDiscovery lanDiscovery;
 
     // Temporary real-time buffers for mixing (pre-allocated)
     juce::AudioBuffer<float> localMixBuffer;
+    juce::AudioBuffer<float> fxProcessBuffer;
+    juce::AudioBuffer<float> drumMixBuffer;
+    juce::MidiBuffer emptyMidiBuffer;
     std::array<juce::AudioBuffer<float>, MAX_REMOTE_STRIPS> remoteAudioBuffers;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)

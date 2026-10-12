@@ -7,6 +7,9 @@
 #include "MixerPanel.h"
 #include "TunerComponent.h"
 #include "MetronomeComponent.h"
+#include "EffectsPanel.h"
+#include "DrumPanel.h"
+#include "RehearsalToolsPanel.h"
 
 namespace paasphoos
 {
@@ -23,6 +26,8 @@ public:
     void timerCallback() override;
 
 private:
+    void switchView(int viewIndex);
+
     AudioEngine& audioEngine;
 
     // Header Components
@@ -31,12 +36,22 @@ private:
     juce::Label modeBadgeLabel;
     juce::Label cpuBadgeLabel;
 
+    // Navigation Buttons
+    juce::TextButton viewMixerBtn;
+    juce::TextButton viewFxBtn;
+    juce::TextButton viewDrumsBtn;
+    juce::TextButton viewRehearsalBtn;
+    int currentViewIndex{0};
+
     // Sub-panels
     SessionPanel sessionPanel;
     AudioSettingsPanel audioSettingsPanel;
     MetronomeComponent metronomeComponent;
     MixerPanel mixerPanel;
     TunerComponent tunerComponent;
+    EffectsPanel effectsPanel;
+    DrumPanel drumPanel;
+    RehearsalToolsPanel rehearsalToolsPanel;
 
     // Status Bar
     juce::Label statusBarLabel;

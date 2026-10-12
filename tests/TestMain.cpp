@@ -5,9 +5,14 @@
 #include "../src/audio/RealtimeRingBuffer.h"
 #include "../src/audio/Metronome.h"
 #include "../src/audio/Tuner.h"
+#include "../src/audio/BuiltInFxChain.h"
+#include "../src/audio/DrumEngine.h"
+#include "../src/audio/DrumSequencer.h"
+#include "../src/session/SetlistManager.h"
 #include "../src/network/NetworkPacket.h"
 #include "../src/network/NetworkStats.h"
 #include "../src/network/JitterBuffer.h"
+#include "../src/network/StunClient.h"
 
 void testRingBuffer()
 {
@@ -264,10 +269,170 @@ void testMultiPeerPacket()
     std::cout << "  Multi-Peer Directory Packet serialization passed!" << std::endl;
 }
 
+void testBuiltInFx()
+{
+    std::cout << "[TEST] Running BuiltInFxChain tests..." << std::endl;
+    paasphoos::BuiltInFxChain fx;
+    fx.prepare(48000.0, 128);
+
+    // Test enabling all modules
+    fx.setEnabled(true);
+    fx.setGateEnabled(true);
+    fx.setDriveEnabled(true);
+    fx.setDriveAmount(0.6f);
+    fx.setCompEnabled(true);
+    fx.setEqEnabled(true);
+    fx.setReverbEnabled(true);
+
+    juce::AudioBuffer<float> buffer(2, 128);
+    // Fill with a sine wave
+    for (int ch = 0; ch < 2; ++ch)
+    {
+        for (int i = 0; i < 128; ++i)
+            buffer.setSample(ch, i, std::sin(2.0f * 3.14159f * 440.0f * (float)i / 48000.0f) * 0.5f);
+    }
+
+    fx.process(buffer, 0, 128);
+
+    float peak = buffer.getMagnitude(0, 128);
+    assert(peak > 0.01f);
+    assert(!std::isnan(peak));
+    assert(!std::isinf(peak));
+
+    // Test preset recall
+    fx.loadPreset(paasphoos::FxPreset::HIGH_GAIN_LEAD);
+    assert(fx.getDriveEnabled() == true);
+
+    fx.loadPreset(paasphoos::FxPreset::CLEAN_ACOUSTIC);
+    assert(fx.getDriveEnabled() == false);
+    assert(fx.getCompEnabled() == true);
+
+    std::cout << "  BuiltInFxChain DSP & Presets passed!" << std::endl;
+}
+
+void testDrumEngine()
+{
+    std::cout << "[TEST] Running DrumEngine synthesis tests..." << std::endl;
+    paasphoos::DrumEngine drums;
+    drums.prepare(48000.0);
+
+    // Trigger Kick and Snare
+    drums.triggerVoice(paasphoos::DrumSound::KICK, 0.9f);
+    drums.triggerVoice(paasphoos::DrumSound::SNARE, 0.8f);
+
+    juce::AudioBuffer<float> buffer(2, 128);
+    buffer.clear();
+    drums.renderNextBlock(buffer, 0, 128);
+
+    float peak = buffer.getMagnitude(0, 128);
+    assert(peak > 0.05f);
+
+    // Trigger Bollywood Dholak
+    drums.triggerVoice(paasphoos::DrumSound::PERCUSSION_DHOLAK, 1.0f);
+    buffer.clear();
+    drums.renderNextBlock(buffer, 0, 128);
+    float dholakPeak = buffer.getMagnitude(0, 128);
+    assert(dholakPeak > 0.05f);
+
+    // Kit Presets
+    drums.loadKitPreset(paasphoos::DrumKitPreset::BOLLYWOOD_DHOLAK);
+
+    std::cout << "  DrumEngine synthesized voices & kits passed!" << std::endl;
+}
+
+void testDrumSequencer()
+{
+    std::cout << "[TEST] Running DrumSequencer pattern & MIDI export tests..." << std::endl;
+    paasphoos::DrumEngine drums;
+    drums.prepare(48000.0);
+
+    paasphoos::DrumSequencer seq(drums);
+    seq.prepare(48000.0);
+    seq.setBpm(120.0f);
+
+    // Load Rock Groove
+    seq.generateGroove(paasphoos::GrooveStyle::ROCK_FOUR_ON_FLOOR);
+    assert(seq.getStep(static_cast<int>(paasphoos::DrumSound::KICK), 0) > 0.0f);
+
+    // Test MIDI file export
+    juce::File tempMidi = juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("test_pattern.mid");
+    if (tempMidi.exists())
+        tempMidi.deleteFile();
+
+    bool exported = seq.exportMidiFile(tempMidi);
+    assert(exported);
+    assert(tempMidi.existsAsFile());
+    assert(tempMidi.getSize() > 32);
+
+    // Verify MIDI Header 'MThd'
+    juce::FileInputStream stream(tempMidi);
+    char headerTag[4];
+    stream.read(headerTag, 4);
+    assert(std::memcmp(headerTag, "MThd", 4) == 0);
+
+    tempMidi.deleteFile();
+    std::cout << "  DrumSequencer grooves & Standard MIDI File export passed!" << std::endl;
+}
+
+void testStunAndRoomCode()
+{
+    std::cout << "[TEST] Running STUN Room Code encoding & decoding tests..." << std::endl;
+    juce::String ip = "192.168.1.105";
+    int port = 44045;
+
+    juce::String roomCode = paasphoos::StunClient::generateRoomCode(ip, port);
+    assert(roomCode.startsWith("PP-"));
+
+    juce::String outIp;
+    int outPort = 0;
+    bool parsed = paasphoos::StunClient::parseRoomCode(roomCode, outIp, outPort);
+    assert(parsed);
+    assert(outIp == ip);
+    assert(outPort == port);
+
+    // Test with public IP
+    juce::String pubIp = "203.0.113.195";
+    int pubPort = 55123;
+    juce::String pubCode = paasphoos::StunClient::generateRoomCode(pubIp, pubPort);
+    juce::String decodedIp;
+    int decodedPort = 0;
+    assert(paasphoos::StunClient::parseRoomCode(pubCode, decodedIp, decodedPort));
+    assert(decodedIp == pubIp);
+    assert(decodedPort == pubPort);
+
+    std::cout << "  STUN Room Code ('" << roomCode << "') generated & decoded successfully!" << std::endl;
+}
+
+void testSetlistManager()
+{
+    std::cout << "[TEST] Running SetlistManager song library tests..." << std::endl;
+    paasphoos::SetlistManager mgr;
+    assert(mgr.getNumSongs() >= 4);
+
+    auto song0 = mgr.getSong(0);
+    assert(song0 != nullptr);
+    assert(song0->bpm > 0.0f);
+    assert(song0->title.isNotEmpty());
+
+    mgr.selectSong(1);
+    assert(mgr.getCurrentSongIndex() == 1);
+
+    mgr.selectSong(2);
+    assert(mgr.getCurrentSongIndex() == 2);
+
+    // Test adding a song
+    mgr.addSong("Acoustic Sunset", "G Major", 95.0f, "Intro: G - D - Em - C");
+    int lastIdx = mgr.getNumSongs() - 1;
+    assert(mgr.getSong(lastIdx)->title == "Acoustic Sunset");
+    assert(mgr.getSong(lastIdx)->bpm == 95.0f);
+
+    std::cout << "  SetlistManager songs, indexing & navigation passed!" << std::endl;
+}
+
 int main()
 {
     std::cout << "===========================================" << std::endl;
-    std::cout << "  Running PaasPhoos M1 + M2 + M3 Test Suite" << std::endl;
+    std::cout << "  Running PaasPhoos Full M1-M7 Test Suite" << std::endl;
     std::cout << "===========================================" << std::endl;
 
     testRingBuffer();
@@ -278,9 +443,15 @@ int main()
     testJitterBuffer();
     testJitterBufferPLCAndDrift();
     testMultiPeerPacket();
+    testBuiltInFx();
+    testDrumEngine();
+    testDrumSequencer();
+    testStunAndRoomCode();
+    testSetlistManager();
 
     std::cout << "\n===========================================" << std::endl;
-    std::cout << "ALL 8 AUDIO, NETWORK & M3 TESTS PASSED!" << std::endl;
+    std::cout << "ALL 13 AUDIO, NETWORK, DSP, DRUMS & REHEARSAL TESTS PASSED!" << std::endl;
     std::cout << "===========================================" << std::endl;
     return 0;
 }
+

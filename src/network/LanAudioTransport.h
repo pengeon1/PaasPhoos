@@ -76,6 +76,9 @@ public:
     void setJitterBufferMode(int participantIndex, JitterBufferMode mode) noexcept;
     void setManualTargetDelayMs(int participantIndex, float delayMs) noexcept;
 
+    // Network Simulator
+    void setNetworkSimulator(class NetworkSimulator* sim) noexcept { networkSimulator = sim; }
+
     // Aggregate Network Stats (primary peer or host)
     NetworkStats& getStats() { return primaryStats; }
     const NetworkStats& getStats() const { return primaryStats; }
@@ -129,6 +132,8 @@ private:
     std::vector<int16_t> pcmConversionBuffer;
     std::vector<float> planarChannelBuffer0;
     std::vector<float> planarChannelBuffer1;
+
+    class NetworkSimulator* networkSimulator{nullptr};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LanAudioTransport)
 };

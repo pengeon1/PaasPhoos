@@ -11,9 +11,12 @@ namespace paasphoos
 
 AudioEngine::AudioEngine()
     : currentSampleRate(48000.0),
-      currentBufferSize(128)
+      currentBufferSize(128),
+      drumSequencer(drumEngine)
 {
     localMixBuffer.setSize(2, 2048);
+    fxProcessBuffer.setSize(2, 2048);
+    drumMixBuffer.setSize(2, 2048);
     for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
     {
         remoteAudioBuffers[i].setSize(2, 2048);
@@ -49,11 +52,13 @@ bool AudioEngine::initialize()
     }
 
     deviceManager.addAudioCallback(this);
+    lanTransport.setNetworkSimulator(&networkSimulator);
     return true;
 }
 
 void AudioEngine::shutdown()
 {
+    sessionRecorder.stopRecording();
     deviceManager.removeAudioCallback(this);
     deviceManager.closeAudioDevice();
 }
@@ -141,11 +146,20 @@ void AudioEngine::audioDeviceAboutToStart(juce::AudioIODevice* device)
 
     metronome.prepareToPlay(currentSampleRate);
     tuner.prepareToPlay(currentSampleRate);
+    builtInFx.prepare(currentSampleRate, currentBufferSize);
+    pluginHostManager.initialize(currentSampleRate, currentBufferSize);
+    drumEngine.prepare(currentSampleRate);
+    drumSequencer.prepare(currentSampleRate);
 
-    // Pre-allocate local mixing and remote audio buffers (real-time safe)
     int allocSize = std::max(currentBufferSize, 2048);
     localMixBuffer.setSize(2, allocSize, false, false, false);
     localMixBuffer.clear();
+
+    fxProcessBuffer.setSize(2, allocSize, false, false, false);
+    fxProcessBuffer.clear();
+
+    drumMixBuffer.setSize(2, allocSize, false, false, false);
+    drumMixBuffer.clear();
 
     for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
     {
@@ -163,7 +177,14 @@ void AudioEngine::audioDeviceStopped()
 {
     metronome.reset();
     tuner.reset();
+    builtInFx.reset();
+    drumEngine.reset();
+    drumSequencer.reset();
+
     localMixBuffer.setSize(0, 0);
+    fxProcessBuffer.setSize(0, 0);
+    drumMixBuffer.setSize(0, 0);
+
     for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
     {
         remoteAudioBuffers[i].setSize(0, 0);
@@ -231,7 +252,6 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
     const float pan1 = juce::jlimit(-1.0f, 1.0f, channel1.pan.load(std::memory_order_relaxed));
     const float pan2 = juce::jlimit(-1.0f, 1.0f, channel2.pan.load(std::memory_order_relaxed));
 
-    // Pan laws (linear taper)
     const float panL1 = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f - pan1) * 0.5f));
     const float panR1 = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f + pan1) * 0.5f));
 
@@ -244,14 +264,28 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
     std::fill_n(mixL, numSamples, 0.0f);
     std::fill_n(mixR, numSamples, 0.0f);
 
-    // Process Channel 1 (Instrument / Guitar)
+    // 1. Process Channel 1 (Instrument / Guitar) through Built-in FX Chain & VST3 Host
     float ch1Peak = 0.0f;
     const float* in1 = (numInputChannels > 0) ? inputChannelData[0] : nullptr;
+
     if (in1 != nullptr)
     {
+        // Copy to FX process buffer
+        float* fx0 = fxProcessBuffer.getWritePointer(0);
+        float* fx1 = fxProcessBuffer.getWritePointer(1);
+        std::copy_n(in1, numSamples, fx0);
+        std::copy_n(in1, numSamples, fx1);
+
+        // Run DSP FX rack (Gate -> Drive -> Comp -> EQ -> Reverb)
+        builtInFx.process(fxProcessBuffer, 0, numSamples);
+
+        // Run VST3 Plugin Host if an external plugin is loaded
+        emptyMidiBuffer.clear();
+        pluginHostManager.process(fxProcessBuffer, emptyMidiBuffer);
+
         for (int i = 0; i < numSamples; ++i)
         {
-            float s = in1[i];
+            float s = fx0[i];
             float absS = std::abs(s);
             if (absS > ch1Peak) ch1Peak = absS;
 
@@ -273,14 +307,17 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
     float prevPeak1 = channel1.peakLevel.load(std::memory_order_relaxed);
     channel1.peakLevel.store(std::max(ch1Peak, prevPeak1 * 0.92f), std::memory_order_relaxed);
 
-    // Process Channel 2 (Vocal / Secondary)
+    // 2. Process Channel 2 (Vocal / Secondary)
     float ch2Peak = 0.0f;
     const float* in2 = (numInputChannels > 1) ? inputChannelData[1] : nullptr;
     if (in2 != nullptr)
     {
+        // Talkback ducking/boost if PTT active
+        float pttBoost = chatTalkback.isPushToTalkActive() ? 1.4f : 1.0f;
+
         for (int i = 0; i < numSamples; ++i)
         {
-            float s = in2[i];
+            float s = in2[i] * pttBoost;
             float absS = std::abs(s);
             if (absS > ch2Peak) ch2Peak = absS;
 
@@ -302,10 +339,24 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
     float prevPeak2 = channel2.peakLevel.load(std::memory_order_relaxed);
     channel2.peakLevel.store(std::max(ch2Peak, prevPeak2 * 0.92f), std::memory_order_relaxed);
 
-    // Send local processed audio to band over network (local monitoring remains zero-latency)
+    // 3. Process Drum Machine Subsystem (Synthesizer + Step Sequencer)
+    drumMixBuffer.clear();
+    drumSequencer.processBlock(numSamples);
+    drumEngine.renderNextBlock(drumMixBuffer, 0, numSamples);
+
+    const float* drumL = drumMixBuffer.getReadPointer(0);
+    const float* drumR = drumMixBuffer.getReadPointer(1);
+
+    for (int i = 0; i < numSamples; ++i)
+    {
+        mixL[i] += drumL[i];
+        mixR[i] += drumR[i];
+    }
+
+    // 4. Send local processed audio to band over network (local monitoring remains zero-latency)
     lanTransport.pushLocalAudio(localMixBuffer.getArrayOfReadPointers(), 2, numSamples);
 
-    // Pull and mix audio for all 5 remote band member channels
+    // 5. Pull and mix audio for all 5 remote band member channels
     for (int s = 0; s < MAX_REMOTE_STRIPS; ++s)
     {
         int partId = getParticipantIdForRemoteStrip(s);
@@ -319,7 +370,6 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
             continue;
         }
 
-        // Pull audio from peer's jitter buffer with drift correction
         lanTransport.pullPeerAudio(partId, remoteAudioBuffers[s].getArrayOfWritePointers(), 2, numSamples);
         const float* rL = remoteAudioBuffers[s].getReadPointer(0);
         const float* rR = remoteAudioBuffers[s].getReadPointer(1);
@@ -353,12 +403,35 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
 
         float prevPeerPeak = remotePeers[s].peakLevel.load(std::memory_order_relaxed);
         remotePeers[s].peakLevel.store(std::max(stripPeak, prevPeerPeak * 0.92f), std::memory_order_relaxed);
+
+        // Multitrack recorder feed for remote peer
+        if (sessionRecorder.isRecording())
+        {
+            sessionRecorder.pushTrackAudio(2 + s, remoteAudioBuffers[s].getArrayOfReadPointers(), 2, numSamples);
+        }
     }
 
-    // Add Metronome click to local monitor mix
+    // Feed local stems to multitrack recorder
+    if (sessionRecorder.isRecording())
+    {
+        if (in1 != nullptr)
+        {
+            const float* in1Planes[2] = { in1, in1 };
+            sessionRecorder.pushTrackAudio(0, in1Planes, 2, numSamples);
+        }
+        if (in2 != nullptr)
+        {
+            const float* in2Planes[2] = { in2, in2 };
+            sessionRecorder.pushTrackAudio(1, in2Planes, 2, numSamples);
+        }
+        sessionRecorder.pushTrackAudio(7, drumMixBuffer.getArrayOfReadPointers(), 2, numSamples);
+        sessionRecorder.pushMasterAudio(localMixBuffer.getArrayOfReadPointers(), 2, numSamples);
+    }
+
+    // 6. Add Metronome click to local monitor mix
     metronome.process(localMixBuffer, 0, numSamples);
 
-    // Apply Master Volume and write to hardware output
+    // 7. Apply Master Volume and write to hardware output
     const float masterVol = masterVolume.load(std::memory_order_relaxed);
     float outPeakL = 0.0f;
     float outPeakR = 0.0f;

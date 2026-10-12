@@ -34,6 +34,7 @@ private:
     // Mode Selector
     juce::TextButton lanModeButton;
     juce::TextButton internetModeButton;
+    bool internetModeSelected{false};
 
     // Host section
     juce::Label hostSectionLabel;

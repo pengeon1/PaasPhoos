@@ -58,3 +58,7 @@ crash_reports/
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Distribution outputs
+dist/
+*.zip

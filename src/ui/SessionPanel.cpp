@@ -1,4 +1,5 @@
 #include "SessionPanel.h"
+#include "../network/StunClient.h"
 
 namespace paasphoos
 {
@@ -9,7 +10,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     audioEngine.getLanDiscovery().addChangeListener(this);
     audioEngine.getLanTransport().addChangeListener(this);
 
-    headerLabel.setText("SESSION & NETWORK (LAN MODE - 6 BAND PARTICIPANTS)", juce::dontSendNotification);
+    headerLabel.setText("SESSION & NETWORK (LAN LOW-LATENCY MODE)", juce::dontSendNotification);
     headerLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(headerLabel);
@@ -22,12 +23,27 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(bandCountBadge);
 
     // Mode Buttons
-    lanModeButton.setButtonText("LAN Mode (Active)");
+    lanModeButton.setButtonText("LAN Mode");
     lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff0284c7));
+    lanModeButton.onClick = [this]()
+    {
+        internetModeSelected = false;
+        lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff0284c7));
+        internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e293b));
+        headerLabel.setText("SESSION & NETWORK (LAN LOW-LATENCY MODE)", juce::dontSendNotification);
+    };
     addAndMakeVisible(lanModeButton);
 
-    internetModeButton.setButtonText("Internet Mode (M6)");
-    internetModeButton.setEnabled(false);
+    internetModeButton.setButtonText("Internet Mode (STUN)");
+    internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e293b));
+    internetModeButton.setEnabled(true);
+    internetModeButton.onClick = [this]()
+    {
+        internetModeSelected = true;
+        internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff0284c7));
+        lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e293b));
+        headerLabel.setText("SESSION & NETWORK (INTERNET WAN / STUN ROOM CODE MODE)", juce::dontSendNotification);
+    };
     addAndMakeVisible(internetModeButton);
 
     // Host Controls
@@ -57,7 +73,29 @@ SessionPanel::SessionPanel(AudioEngine& engine)
             audioEngine.getLanDiscovery().startHosting("PaasPhoos Band Jam", "Host Leader", port);
             hostSessionButton.setButtonText("STOP HOSTING");
             hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c));
-            hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d", adapterInfo.ipAddress.toRawUTF8(), port), juce::dontSendNotification);
+
+            if (internetModeSelected)
+            {
+                auto stunRes = StunClient::resolvePublicEndpoint(port);
+                if (stunRes.success)
+                {
+                    hostStatusLabel.setText(juce::String::formatted("WAN Code: %s (%s:%d)",
+                                                                   stunRes.roomCode.toRawUTF8(),
+                                                                   stunRes.publicIp.toRawUTF8(),
+                                                                   stunRes.publicPort),
+                                           juce::dontSendNotification);
+                }
+                else
+                {
+                    hostStatusLabel.setText(juce::String::formatted("Hosting LAN %s:%d (STUN unavail)",
+                                                                   adapterInfo.ipAddress.toRawUTF8(), port),
+                                           juce::dontSendNotification);
+                }
+            }
+            else
+            {
+                hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d", adapterInfo.ipAddress.toRawUTF8(), port), juce::dontSendNotification);
+            }
         }
     };
     addAndMakeVisible(hostSessionButton);
@@ -119,10 +157,21 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     connectManualButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff2563eb));
     connectManualButton.onClick = [this]()
     {
-        juce::String ip = manualIpEditor.getText().trim();
+        juce::String input = manualIpEditor.getText().trim();
+        if (input.startsWithIgnoreCase("PP-") || (!input.containsChar('.') && input.isNotEmpty()))
+        {
+            juce::String parsedIp;
+            int parsedPort = 0;
+            if (StunClient::parseRoomCode(input, parsedIp, parsedPort))
+            {
+                audioEngine.getLanTransport().startAsClient(parsedIp, parsedPort, "Musician", "Band Member");
+                return;
+            }
+        }
+
         int port = manualPortEditor.getText().getIntValue();
         if (port <= 0) port = 44045;
-        audioEngine.getLanTransport().startAsClient(ip, port, "Musician", "Band Member");
+        audioEngine.getLanTransport().startAsClient(input, port, "Musician", "Band Member");
     };
     addAndMakeVisible(connectManualButton);
 

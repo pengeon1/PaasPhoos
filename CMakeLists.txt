@@ -44,10 +44,27 @@ target_sources(PaasPhoos PRIVATE
     src/audio/Metronome.h
     src/audio/Tuner.h
     src/audio/RealtimeRingBuffer.h
+    src/audio/BuiltInFxChain.h
+    src/audio/BuiltInFxChain.cpp
+    src/audio/PluginHostManager.h
+    src/audio/PluginHostManager.cpp
+    src/audio/DrumEngine.h
+    src/audio/DrumEngine.cpp
+    src/audio/DrumSequencer.h
+    src/audio/DrumSequencer.cpp
+    src/audio/SessionRecorder.h
+    src/audio/SessionRecorder.cpp
+    src/session/SetlistManager.h
+    src/session/SetlistManager.cpp
+    src/session/ChatTalkback.h
+    src/session/ChatTalkback.cpp
     src/network/NetworkPacket.h
     src/network/NetworkStats.h
     src/network/NetworkAdapterDetector.h
     src/network/NetworkAdapterDetector.cpp
+    src/network/NetworkSimulator.h
+    src/network/StunClient.h
+    src/network/StunClient.cpp
     src/network/JitterBuffer.h
     src/network/JitterBuffer.cpp
     src/network/LanDiscovery.h
@@ -66,6 +83,12 @@ target_sources(PaasPhoos PRIVATE
     src/ui/TunerComponent.cpp
     src/ui/MetronomeComponent.h
     src/ui/MetronomeComponent.cpp
+    src/ui/EffectsPanel.h
+    src/ui/EffectsPanel.cpp
+    src/ui/DrumPanel.h
+    src/ui/DrumPanel.cpp
+    src/ui/RehearsalToolsPanel.h
+    src/ui/RehearsalToolsPanel.cpp
     src/common/LookAndFeelCustom.h
 )
 
@@ -141,6 +164,11 @@ endif()
 add_executable(PaasPhoosTests
     tests/TestMain.cpp
     src/network/JitterBuffer.cpp
+    src/network/StunClient.cpp
+    src/audio/BuiltInFxChain.cpp
+    src/audio/DrumEngine.cpp
+    src/audio/DrumSequencer.cpp
+    src/session/SetlistManager.cpp
 )
 
 target_include_directories(PaasPhoosTests PRIVATE
@@ -157,6 +185,10 @@ target_compile_definitions(PaasPhoosTests PRIVATE
 target_link_libraries(PaasPhoosTests PRIVATE
     juce::juce_core
     juce::juce_audio_basics
+    juce::juce_audio_formats
+    juce::juce_audio_processors
+    juce::juce_dsp
+    juce::juce_data_structures
 )
 
 if(WIN32)

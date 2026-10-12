@@ -6,11 +6,15 @@
 ## 1. Overview
 **PaasPhoos** is built specifically for a 6-piece band (1 vocalist, 1 keyboardist, 3 guitarists, 1 drummer) to rehearse together in real time with the lowest physical latency possible over local LANs and the internet.
 
-- **Audio Engine**: C++17 powered by JUCE 8 (GPLv3).
-- **Driver Architecture**: Native ASIO driver support + Steinberg ASIO SDK integration + low-latency Windows WASAPI fallback.
-- **Real-Time Safety**: Zero dynamic allocations (`malloc`/`new`), zero mutexes/locks on audio thread, lock-free ring buffers (`AbstractFifo`), Windows MMCSS Pro Audio thread scheduling.
-- **Local Zero-Latency Monitoring**: Direct hardware-to-headphone path for your own instrument and voice.
-- **Mixer & Rehearsal Utilities**: Per-channel gain, pan, mute, solo, peak meters with clip detection, sample-accurate click metronome, and real-time chromatic tuner.
+### Complete Feature Set (Milestones 1–7):
+- **Audio Engine (M1)**: C++17 powered by JUCE 8 (GPLv3). Low-latency Windows WASAPI and Steinberg ASIO SDK drivers. Zero dynamic allocation on audio callbacks, lock-free ring buffers (`AbstractFifo`), Windows MMCSS Pro Audio thread scheduling.
+- **Local Monitoring & Mixer (M1)**: Zero-latency hardware monitor path, per-channel gain, pan, mute, solo, peak meters with clip reset, sample-accurate metronome, and real-time chromatic tuner.
+- **LAN Rehearsal (M2)**: Raw uncompressed 16-bit linear PCM over UDP (0 ms codec latency), UDP broadcast session discovery, Wi-Fi vs. Ethernet adapter detector with isolation warning, and headless test-bot client (`PaasPhoosBot.exe`).
+- **6-Piece Band Rehearsal (M3)**: In-app Star Topology audio relay supporting 6 band members, per-peer adaptive jitter buffer (RFC 3550 delay variation estimation), Hermite polynomial resampler for sample clock drift correction, and energy-decay packet loss concealment (PLC).
+- **DSP Rack & VST3 Hosting (M4)**: Built-in 5-stage real-time DSP effects chain (Noise Gate, Tube Overdrive with tone control, Compressor with auto-makeup, 4-Band Parametric EQ, Plate Reverb) + Full VST3 plugin scanning, hosting, parameter control, and external plugin GUI window display (`C:\Program Files\Common Files\VST3`).
+- **Synthesized Drum Machine (M5)**: 8 synthesis voices (Kick, Snare, Closed Hat, Open Hat, Low Tom, High Tom, Clap, Indian Bollywood Dholak percussion) + WAV custom sample loading + 5 kit presets. 16-step sequencer grid, swing (0–60%), humanize timing, fill generator, auto-grooves (Rock, Pop, Metal, Funk, EDM, Bollywood), live trigger pads (hotkeys `Z, X, C, V, A, S, D, F`), and Standard MIDI File (.mid) export.
+- **Internet Mode & Network Sim (M6)**: RFC 5389 STUN client querying Google STUN (`stun.l.google.com:19302`) to resolve public IP/port and generate 6-character room codes (`PP-XXXX`) for direct connection across the Internet. Integrated network simulator for artificial latency injection (0–120ms), jitter (0–40ms), and packet loss (0–25%) testing. Virtual LAN (Tailscale / ZeroTier) guide.
+- **Multitrack Recording, Setlist & Chat (M7)**: Lock-free background multitrack 24-bit WAV recorder capturing the stereo master mix (`00_Master_Mix.wav`) plus isolated individual stems (`01_Local_Instrument.wav` to `08_Drums.wav`). Setlist manager syncing BPM and key to metronome and drum sequencer. In-app text chat and push-to-talk (PTT) voice talkback. Live end-to-end latency budget breakdown.
 
 ---
 
@@ -39,10 +43,16 @@
      .\build.ps1
      ```
 
-3. The compiled binary will be placed at:
+3. The compiled binaries will be located at:
+   - Main App: `build\PaasPhoos_artefacts\Release\PaasPhoos.exe`
+   - Headless Bot: `build\Release\PaasPhoosBot.exe`
+   - Test Suite: `build\Release\PaasPhoosTests.exe`
+
+4. To package a standalone portable release:
+   ```powershell
+   .\package.ps1
    ```
-   build\PaasPhoos_artefacts\Release\PaasPhoos.exe
-   ```
+   Produces `dist\PaasPhoos-v0.1.0-Windows-x64.zip`.
 
 ---
 
@@ -54,45 +64,70 @@ PaasPhoos works immediately on any Windows 10/11 laptop using Windows Audio Sess
 - Supports buffer sizes down to 64 or 128 samples (~1.3 to 2.7 ms buffer latency) without installing any drivers.
 
 ### Option B: Hardware ASIO (Recommended for Audio Interfaces)
-If you are using a dedicated USB audio interface (Focusrite Scarlett, PreSonus, MOTU, Behringer, SSL, etc.) or a multi-effects pedal with USB audio (Zoom G3/G5, Boss GT/Katana, Line 6 Helix/POD):
+If you are using a dedicated USB audio interface (Focusrite Scarlett, PreSonus, MOTU, Behringer, SSL, etc.) or a multi-effects pedal with USB audio (Zoom G3/G5, Boss Katana/GT, Line 6 Helix/POD):
 - Install the official manufacturer ASIO driver from the vendor's free download page.
 - Select **ASIO** in PaasPhoos and choose your hardware interface.
 
 ### Option C: Free Virtual ASIO Drivers (For Built-in Soundcards)
 If you are using a laptop without an external interface and want sub-5ms ASIO performance:
 1. **FlexASIO** (Open Source, Free):
-   - Download the installer from: [FlexASIO GitHub Releases](https://github.com/dechamps/FlexASIO/releases)
-   - Uses WASAPI Exclusive or DirectSound underneath with ASIO application compatibility.
+   - Download installer: [FlexASIO GitHub Releases](https://github.com/dechamps/FlexASIO/releases)
+   - Uses WASAPI Exclusive underneath with ASIO application compatibility.
 2. **ASIO4ALL** (Free):
    - Download from: [asio4all.org](https://www.asio4all.org/)
    - Provides kernel-streaming low-latency access to Realtek and laptop audio chips.
 
-### Option D: Building with Steinberg ASIO SDK
-As of late 2025, the official Steinberg ASIO SDK is dual-licensed under GPLv3.
-To compile PaasPhoos with native Steinberg ASIO SDK support:
-1. Download the ASIO SDK from the [Steinberg Developer Portal](https://sdk.steinberg.net/).
-2. Extract the SDK into `external/asiosdk/` so that `iasiodrv.h` is located at `external/asiosdk/common/iasiodrv.h` or `external/asiosdk/iasiodrv.h`.
-3. Re-run `build.bat`. CMake will automatically detect the SDK, define `JUCE_ASIO=1`, and build ASIO driver management into the binary.
+---
+
+## 4. Internet Mode Rehearsal Guide (Zero Cost, No Port Forwarding)
+
+### Method 1: Built-in STUN Room Code (RFC 5389)
+1. Host clicks **Internet Mode (STUN)** -> **START HOSTING**.
+2. PaasPhoos queries Google STUN (`stun.l.google.com:19302`), discovers the host's public IP and mapped NAT port, and generates a **Room Code** (e.g. `PP-MTkyLjE2OC4x...`).
+3. Host sends the Room Code to the band members over chat.
+4. Band members paste the code into the **IP / Room Code** box and click **DIRECT CONNECT**.
+
+### Method 2: Virtual Mesh LAN (Tailscale / ZeroTier) - Most Reliable
+For band rehearsals where members have Symmetric NATs (e.g. cellular 5G hotspots or strict campus routers) that block direct UDP traversal:
+1. Download **Tailscale** (free for up to 100 devices at [tailscale.com](https://tailscale.com)) or **ZeroTier** ([zerotier.com](https://www.zerotier.com)).
+2. All 6 band members log into the same private Tailscale tailnet.
+3. Tailscale assigns each computer a permanent virtual IP (e.g. `100.x.y.z`).
+4. Host clicks **START HOSTING**.
+5. Other band members paste the host's `100.x.y.z` address into **IP** and click **DIRECT CONNECT**.
+6. Packets travel point-to-point with WireGuard UDP encryption and zero configuration.
 
 ---
 
-## 4. Troubleshooting & Latency Optimization Tips
-
-1. **Always Use Headphones**: Never use open laptop speakers while singing or playing into a microphone; the speaker output will leak into the mic and create audio feedback.
-2. **Buffer Size Tuning**:
-   - Start with **128 samples** (2.67 ms @ 48 kHz).
-   - If your audio interface supports it and you hear no clicks, drop to **64 samples** (1.33 ms).
-   - If you hear crackling or CPU spikes, increase buffer size to **256 samples**.
-3. **Plug into AC Power**: Windows laptops throttle CPU frequencies when on battery power, which can cause audio dropouts (XRuns). Keep laptops plugged in during rehearsals.
-4. **Use Ethernet**: Wi-Fi introduces packet jitter and variance that hurts real-time performance. Always use wired Ethernet for multi-player rehearsals.
+## 5. Recommended Free VST3 Plugins
+PaasPhoos automatically scans `C:\Program Files\Common Files\VST3`. Top recommended free, open-source VST3 plugins:
+- **Guitar Amps & Cabs**: 
+  - *Neural Amp Modeler (NAM)* (Open Source) – World-class tube amplifier profiles.
+  - *LePou Plugins* / *Ignite Amps Emissary* (Free) – High-gain rhythm and clean tube amp emulation.
+  - *NadIR* (Ignite Amps) – Zero-latency dual impulse response (IR) cabinet loader.
+- **Bass & Vocals**:
+  - *TDR Nova* (Tokyo Dawn Records) – Dynamic 4-band parallel equalizer.
+  - *Klanghelm DC1A* – Effortless character compressor.
+- **Effects**:
+  - *Valhalla Supermassive* – Cosmic lush delays and reverbs.
+  - *Chow Multi-Tool / Chow Tape* (Chowdhury DSP, Open Source) – Analog tape saturation and flanger.
 
 ---
 
-## 5. Development Milestones
-- **M1 [COMPLETED]**: Real-time Audio I/O + WASAPI/ASIO device manager + local zero-latency monitor + mixer console + sample-accurate metronome + chromatic tuner.
-- **M2 [COMPLETED]**: LAN Mode, 2 users, raw uncompressed PCM over UDP, live latency stats, Wi-Fi detector, headless test-bot.
-- **M3 [COMPLETED]**: 6-piece band rehearsal, in-app star relay, per-peer adaptive jitter buffer (RFC 3550), packet loss concealment (PLC), sample clock drift correction (Hermite resampler).
-- **M4 [NEXT]**: VST3 plugin hosting + built-in DSP effects chain.
-- **M5**: Synthesized drum machine engine + step sequencer + MIDI learn.
-- **M6**: Internet Mode with Opus codec + UDP hole punching + network simulator.
-- **M7**: Multitrack WAV recording, setlist manager, push-to-talk talkback, portable release.
+## 6. End-to-End Latency Budget
+For remote rehearsals to feel natural and tight, one-way audio latency should remain under 25–30 ms:
+
+| Component | Buffer Size | Time (ms) | Notes |
+| :--- | :--- | :--- | :--- |
+| **Input Hardware Buffer** | 128 samples @ 48 kHz | 2.67 ms | ASIO / WASAPI input capture |
+| **DSP FX & VST3 Processing** | Block-aligned | 0.00 – 1.00 ms | Built-in DSP runs sample-accurate in-place |
+| **Network Transmission** | UDP LAN / Metro Fiber | 1.00 – 12.00 ms | Direct physical propagation delay |
+| **Jitter Buffer & Resampler** | Adaptive (RFC 3550) | 4.00 – 8.00 ms | Absorbs network jitter, adjusts dynamically |
+| **Output Hardware Buffer** | 128 samples @ 48 kHz | 2.67 ms | ASIO / WASAPI output rendering |
+| **Total One-Way Acoustic** | | **10.34 – 26.34 ms** | **Ideal for full-band jamming without tempo drag!** |
+
+---
+
+## 7. License
+PaasPhoos is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**.
+JUCE 8 is licensed under the GPLv3 for open-source use.
+Opus is licensed under the 3-Clause BSD License.

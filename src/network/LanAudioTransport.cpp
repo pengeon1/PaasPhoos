@@ -1,4 +1,5 @@
 #include "LanAudioTransport.h"
+#include "NetworkSimulator.h"
 
 #if JUCE_WINDOWS
 #include <windows.h>
@@ -542,6 +543,9 @@ void LanAudioTransport::checkTimeouts()
 
 void LanAudioTransport::handleIncomingPacket(const uint8_t* data, int length, const juce::String& senderIp, int senderPort)
 {
+    if (networkSimulator != nullptr && networkSimulator->shouldDropPacket())
+        return;
+
     if (length < static_cast<int>(sizeof(PacketHeader)))
         return;
 
