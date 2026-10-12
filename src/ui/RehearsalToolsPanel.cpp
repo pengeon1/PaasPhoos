@@ -178,7 +178,7 @@ void RehearsalToolsPanel::refreshSongDetails()
     auto* song = setlistManager.getSong(cur);
     if (song != nullptr)
     {
-        songInfoLabel.setText(juce::String::formatted("Key: %s | Tempo: %.0f BPM", song->key.toRawUTF8(), song->bpm), juce::dontSendNotification);
+        songInfoLabel.setText("Key: " + song->key + " | Tempo: " + juce::String(static_cast<int>(song->bpm)) + " BPM", juce::dontSendNotification);
         songNotesEditor.setText(song->notes, false);
         audioEngine.getMetronome().setBpm(song->bpm);
     }

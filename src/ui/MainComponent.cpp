@@ -124,8 +124,9 @@ void MainComponent::timerCallback()
     double rate = audioEngine.getCurrentSampleRate();
     double lat = audioEngine.getHardwareLatencyMs();
 
-    statusBarLabel.setText(juce::String::formatted("Driver: %s | Device: %s | %.1fkHz | Buffer: %d spl (%.2f ms)",
-                                                  typeName.toRawUTF8(), devName.toRawUTF8(), rate / 1000.0, buf, lat),
+    juce::String rateStr = juce::String(rate / 1000.0, 1) + "kHz";
+    juce::String latStr = juce::String(lat, 2) + " ms";
+    statusBarLabel.setText("Driver: " + typeName + " | Device: " + devName + " | " + rateStr + " | Buffer: " + juce::String(buf) + " spl (" + latStr + ")",
                            juce::dontSendNotification);
 }
 

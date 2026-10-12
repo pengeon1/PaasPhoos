@@ -300,12 +300,8 @@ void SessionPanel::refreshDiscoveredList()
     for (size_t i = 0; i < sessions.size(); ++i)
     {
         auto& s = sessions[i];
-        juce::String text = juce::String::formatted("%s (%s:%d) [%d/%d]",
-                                                    s.sessionName.toRawUTF8(),
-                                                    s.ipAddress.toRawUTF8(),
-                                                    s.audioPort,
-                                                    s.participantCount,
-                                                    s.maxParticipants);
+        juce::String text = s.sessionName + " (" + s.ipAddress + ":" + juce::String(s.audioPort) + ") ["
+                          + juce::String(s.participantCount) + "/" + juce::String(s.maxParticipants) + "]";
         discoveredSessionsCombo.addItem(text, static_cast<int>(i + 1));
     }
 }
@@ -336,7 +332,7 @@ void SessionPanel::updateNetworkStatsDisplay()
     if (isConn)
     {
         juce::String roleText = (role == SessionRole::HOST) ? "HOST" : "CONNECTED";
-        sessionStatusBadge.setText(juce::String::formatted("%s (%s) [%d/6]", roleText.toRawUTF8(), transport.getRemoteAddress().toRawUTF8(), activeCount), juce::dontSendNotification);
+        sessionStatusBadge.setText(roleText + " (" + transport.getRemoteAddress() + ") [" + juce::String(activeCount) + "/6]", juce::dontSendNotification);
         sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff064e3b));
         sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));
     }
