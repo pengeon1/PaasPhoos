@@ -44,7 +44,15 @@ StunResult StunClient::resolvePublicEndpoint(int localBoundPort,
     uint8_t response[512];
     juce::String senderIp;
     int senderPort = 0;
-    int bytesRead = socket.read(response, sizeof(response), true, senderIp, senderPort);
+
+    // Wait up to 800ms for response; do NOT block indefinitely on UDP socket
+    int ready = socket.waitUntilReady(true, 800);
+    int bytesRead = 0;
+    if (ready > 0)
+    {
+        // Must pass blockUntilSpecifiedAmountHasArrived = false for datagrams!
+        bytesRead = socket.read(response, sizeof(response), false, senderIp, senderPort);
+    }
 
     if (bytesRead >= 20)
     {

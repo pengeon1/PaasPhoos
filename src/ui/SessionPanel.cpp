@@ -76,21 +76,30 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
             if (internetModeSelected)
             {
-                auto stunRes = StunClient::resolvePublicEndpoint(port);
-                if (stunRes.success)
+                hostStatusLabel.setText("Hosting started! Discovering STUN public address...", juce::dontSendNotification);
+
+                juce::Thread::launch([this, port, localIp = adapterInfo.ipAddress]()
                 {
-                    hostStatusLabel.setText(juce::String::formatted("WAN Code: %s (%s:%d)",
-                                                                   stunRes.roomCode.toRawUTF8(),
-                                                                   stunRes.publicIp.toRawUTF8(),
-                                                                   stunRes.publicPort),
-                                           juce::dontSendNotification);
-                }
-                else
-                {
-                    hostStatusLabel.setText(juce::String::formatted("Hosting LAN %s:%d (STUN unavail)",
-                                                                   adapterInfo.ipAddress.toRawUTF8(), port),
-                                           juce::dontSendNotification);
-                }
+                    auto stunRes = StunClient::resolvePublicEndpoint(port);
+                    juce::MessageManager::callAsync([this, stunRes, port, localIp]()
+                    {
+                        if (stunRes.success)
+                        {
+                            hostStatusLabel.setText(juce::String::formatted("WAN Code: %s (%s:%d)",
+                                                                           stunRes.roomCode.toRawUTF8(),
+                                                                           stunRes.publicIp.toRawUTF8(),
+                                                                           stunRes.publicPort),
+                                                   juce::dontSendNotification);
+                        }
+                        else
+                        {
+                            auto localCode = StunClient::generateRoomCode(localIp, port);
+                            hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d | Local Code: %s",
+                                                                           localIp.toRawUTF8(), port, localCode.toRawUTF8()),
+                                                   juce::dontSendNotification);
+                        }
+                    });
+                });
             }
             else
             {
