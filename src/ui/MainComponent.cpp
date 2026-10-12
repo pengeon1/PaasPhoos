@@ -210,7 +210,7 @@ void MainComponent::resized()
     area.reduce(10, 4);
 
     // Row 1: Session & Jam Code Network Panel
-    sessionPanel.setBounds(area.removeFromTop(110).reduced(2));
+    sessionPanel.setBounds(area.removeFromTop(120).reduced(2));
     area.removeFromTop(4);
 
     // Row 2: Audio Settings Panel + Metronome

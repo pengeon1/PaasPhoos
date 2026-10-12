@@ -24,7 +24,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(bandCountBadge);
 
     // Method Selector (Jam Code vs Direct IP)
-    jamCodeModeButton.setButtonText("🔑 JAM CODE");
+    jamCodeModeButton.setButtonText("JAM CODE");
     jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
     jamCodeModeButton.onClick = [this]()
     {
@@ -35,7 +35,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     };
     addAndMakeVisible(jamCodeModeButton);
 
-    directIpModeButton.setButtonText("🌐 DIRECT IP / LAN");
+    directIpModeButton.setButtonText("DIRECT IP / LAN");
     directIpModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
     directIpModeButton.onClick = [this]()
     {
@@ -416,15 +416,7 @@ void SessionPanel::refreshDiscoveredList()
 void SessionPanel::updateAdapterWarning()
 {
     adapterInfo = NetworkAdapterDetector::detectPrimaryAdapter();
-    if (adapterInfo.isWiFi)
-    {
-        adapterWarningLabel.setText(adapterInfo.warningMessage, juce::dontSendNotification);
-        adapterWarningLabel.setVisible(true);
-    }
-    else
-    {
-        adapterWarningLabel.setVisible(false);
-    }
+    adapterWarningLabel.setVisible(false);
 }
 
 void SessionPanel::updateNetworkStatsDisplay()
@@ -527,13 +519,6 @@ void SessionPanel::resized()
 
     area.removeFromTop(4);
 
-    // Wi-Fi warning banner (if active)
-    if (adapterWarningLabel.isVisible())
-    {
-        adapterWarningLabel.setBounds(area.removeFromTop(18));
-        area.removeFromTop(2);
-    }
-
     if (!isDirectIpMode)
     {
         // ================= JAM CODE PRIMARY VIEW =================
@@ -556,12 +541,12 @@ void SessionPanel::resized()
         joinWithCodeButton.setVisible(true);
         pasteAndJoinButton.setVisible(true);
 
-        auto mainRow = area.removeFromTop(42);
+        auto mainRow = area.removeFromTop(44);
 
         // Host Column (Left 46%)
         auto hostCol = mainRow.removeFromLeft(static_cast<int>(mainRow.getWidth() * 0.46));
-        hostSectionLabel.setBounds(hostCol.removeFromTop(14));
-        auto hostActionRow = hostCol.removeFromTop(26);
+        hostSectionLabel.setBounds(hostCol.removeFromTop(15));
+        auto hostActionRow = hostCol;
         hostSessionButton.setBounds(hostActionRow.removeFromLeft(125).reduced(1));
         copyCodeButton.setBounds(hostActionRow.removeFromRight(95).reduced(1));
         jamCodeDisplayBadge.setBounds(hostActionRow.reduced(1));
@@ -570,14 +555,16 @@ void SessionPanel::resized()
 
         // Join Column (Right 54%)
         auto joinCol = mainRow;
-        joinSectionLabel.setBounds(joinCol.removeFromTop(14));
-        auto joinActionRow = joinCol.removeFromTop(26);
+        joinSectionLabel.setBounds(joinCol.removeFromTop(15));
+        auto joinActionRow = joinCol;
         joinWithCodeButton.setBounds(joinActionRow.removeFromRight(85).reduced(1));
         pasteAndJoinButton.setBounds(joinActionRow.removeFromRight(105).reduced(1));
         jamCodeEditor.setBounds(joinActionRow.reduced(1));
 
+        area.removeFromTop(4);
+
         // Bottom sub-row: Host status subtext & Live Diagnostics HUD
-        auto bottomRow = area.removeFromTop(20);
+        auto bottomRow = area.removeFromTop(22);
         hostStatusLabel.setBounds(bottomRow.removeFromLeft(static_cast<int>(bottomRow.getWidth() * 0.46)));
         bottomRow.removeFromLeft(14);
 
