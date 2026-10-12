@@ -85,17 +85,13 @@ SessionPanel::SessionPanel(AudioEngine& engine)
                     {
                         if (stunRes.success)
                         {
-                            hostStatusLabel.setText(juce::String::formatted("WAN Code: %s (%s:%d)",
-                                                                           stunRes.roomCode.toRawUTF8(),
-                                                                           stunRes.publicIp.toRawUTF8(),
-                                                                           stunRes.publicPort),
+                            hostStatusLabel.setText("WAN Code: " + stunRes.roomCode + " (" + stunRes.publicIp + ":" + juce::String(stunRes.publicPort) + ")",
                                                    juce::dontSendNotification);
                         }
                         else
                         {
                             auto localCode = StunClient::generateRoomCode(localIp, port);
-                            hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d | Local Code: %s",
-                                                                           localIp.toRawUTF8(), port, localCode.toRawUTF8()),
+                            hostStatusLabel.setText("Hosting on " + localIp + ":" + juce::String(port) + " | LAN Code: " + localCode,
                                                    juce::dontSendNotification);
                         }
                     });
@@ -103,7 +99,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
             }
             else
             {
-                hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d", adapterInfo.ipAddress.toRawUTF8(), port), juce::dontSendNotification);
+                hostStatusLabel.setText("Hosting on " + adapterInfo.ipAddress + ":" + juce::String(port), juce::dontSendNotification);
             }
         }
     };

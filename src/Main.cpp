@@ -18,13 +18,9 @@ public:
         setUsingNativeTitleBar(true);
         setContentOwned(new MainComponent(audioEngine), true);
 
-       #if JUCE_IOS || JUCE_ANDROID
-        setFullScreen(true);
-       #else
         setResizable(true, true);
-        setResizeLimits(800, 560, 2560, 1440);
-        centreWithSize(getWidth(), getHeight());
-       #endif
+        setResizeLimits(800, 560, 3840, 2160);
+        setFullScreen(true);
 
         setVisible(true);
     }

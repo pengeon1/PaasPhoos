@@ -110,6 +110,20 @@ StunResult StunClient::resolvePublicEndpoint(int localBoundPort,
 
 juce::String StunClient::generateRoomCode(const juce::String& ip, int port)
 {
+    auto tokens = juce::StringArray::fromTokens(ip, ".", "");
+    if (tokens.size() == 4)
+    {
+        uint8_t a = static_cast<uint8_t>(tokens[0].getIntValue() & 0xFF);
+        uint8_t b = static_cast<uint8_t>(tokens[1].getIntValue() & 0xFF);
+        uint8_t c = static_cast<uint8_t>(tokens[2].getIntValue() & 0xFF);
+        uint8_t d = static_cast<uint8_t>(tokens[3].getIntValue() & 0xFF);
+        uint16_t p = static_cast<uint16_t>(port & 0xFFFF);
+
+        char buf[32];
+        std::snprintf(buf, sizeof(buf), "PP-%02X%02X%02X%02X-%04X", a, b, c, d, p);
+        return juce::String(buf);
+    }
+
     juce::String raw = ip + ":" + juce::String(port);
     return juce::String("PP-") + juce::Base64::toBase64(raw.toRawUTF8(), raw.getNumBytesAsUTF8());
 }
@@ -120,6 +134,40 @@ bool StunClient::parseRoomCode(const juce::String& roomCode, juce::String& outIp
     if (code.startsWithIgnoreCase("PP-"))
         code = code.substring(3);
 
+    // 1. Try Compact Hex format: XXXXXXXX-XXXX or XXXXXXXXXXXX
+    juce::String cleanHex = code.replace("-", "").toUpperCase();
+    if (cleanHex.length() == 12)
+    {
+        bool allHex = true;
+        for (int i = 0; i < 12; ++i)
+        {
+            auto ch = cleanHex[i];
+            if (!((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F')))
+            {
+                allHex = false;
+                break;
+            }
+        }
+
+        if (allHex)
+        {
+            auto subHex = [&cleanHex](int start, int len) {
+                return static_cast<uint32_t>(std::strtoul(cleanHex.substring(start, start + len).toRawUTF8(), nullptr, 16));
+            };
+
+            uint32_t a = subHex(0, 2);
+            uint32_t b = subHex(2, 2);
+            uint32_t c = subHex(4, 2);
+            uint32_t d = subHex(6, 2);
+            uint32_t p = subHex(8, 4);
+
+            outIp = juce::String(a) + "." + juce::String(b) + "." + juce::String(c) + "." + juce::String(d);
+            outPort = static_cast<int>(p);
+            return (outPort > 0);
+        }
+    }
+
+    // 2. Try Base64 format
     juce::MemoryOutputStream decoded;
     if (juce::Base64::convertFromBase64(decoded, code))
     {
@@ -129,11 +177,11 @@ bool StunClient::parseRoomCode(const juce::String& roomCode, juce::String& outIp
         {
             outIp = s.substring(0, colonIdx);
             outPort = s.substring(colonIdx + 1).getIntValue();
-            return outPort > 0;
+            if (outPort > 0) return true;
         }
     }
 
-    // Fallback: direct ip:port string
+    // 3. Fallback: direct ip:port string
     int colon = code.lastIndexOfChar(':');
     if (colon > 0)
     {
