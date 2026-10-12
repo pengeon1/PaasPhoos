@@ -48,6 +48,8 @@ target_sources(PaasPhoos PRIVATE
     src/network/NetworkStats.h
     src/network/NetworkAdapterDetector.h
     src/network/NetworkAdapterDetector.cpp
+    src/network/JitterBuffer.h
+    src/network/JitterBuffer.cpp
     src/network/LanDiscovery.h
     src/network/LanDiscovery.cpp
     src/network/LanAudioTransport.h
@@ -138,6 +140,7 @@ endif()
 # Unit Tests Executable
 add_executable(PaasPhoosTests
     tests/TestMain.cpp
+    src/network/JitterBuffer.cpp
 )
 
 target_include_directories(PaasPhoosTests PRIVATE

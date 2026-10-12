@@ -23,12 +23,15 @@ int main(int argc, char* argv[])
     std::string targetIp = (argc > 1) ? argv[1] : "127.0.0.1";
     int targetPort = (argc > 2) ? std::stoi(argv[2]) : 44045;
     float toneFreq = (argc > 3) ? std::stof(argv[3]) : 330.0f; // E4 guitar note
+    std::string botName = (argc > 4) ? argv[4] : "Band Bot";
+    std::string botInstrument = (argc > 5) ? argv[5] : "Guitar 2";
 
     std::cout << "========================================================" << std::endl;
-    std::cout << "  PaasPhoos Headless Test-Bot Client (M2 Rehearsal Bot) " << std::endl;
+    std::cout << "  PaasPhoos Headless Test-Bot Client (M3 Band Simulator)" << std::endl;
     std::cout << "========================================================" << std::endl;
+    std::cout << "[*] Name: " << botName << " (" << botInstrument << ")" << std::endl;
     std::cout << "[*] Target Host: " << targetIp << ":" << targetPort << std::endl;
-    std::cout << "[*] Synthesizing rhythmic test tone: " << toneFreq << " Hz" << std::endl;
+    std::cout << "[*] Synthesizing acoustic test tone: " << toneFreq << " Hz" << std::endl;
     std::cout << "[*] Press Ctrl+C to terminate bot." << std::endl;
 
     juce::DatagramSocket socket(false);
@@ -40,6 +43,8 @@ int main(int argc, char* argv[])
 
     int localPort = socket.getBoundPort();
     std::cout << "[*] Bot bound to local ephemeral UDP port: " << localPort << std::endl;
+
+    uint8_t myParticipantId = 1;
 
     // Send JOIN_REQ
     paasphoos::PacketHeader joinHeader;
@@ -55,9 +60,9 @@ int main(int argc, char* argv[])
 
     paasphoos::JoinInfo join;
     std::memset(&join, 0, sizeof(join));
-    juce::String("TestBot (Peer 2)").copyToUTF8(join.clientName, sizeof(join.clientName) - 1);
-    juce::String("Guitar 2 / Bot").copyToUTF8(join.roleOrInstrument, sizeof(join.roleOrInstrument) - 1);
-    join.assignedId = 1;
+    juce::String(botName).copyToUTF8(join.clientName, sizeof(join.clientName) - 1);
+    juce::String(botInstrument).copyToUTF8(join.roleOrInstrument, sizeof(join.roleOrInstrument) - 1);
+    join.assignedId = 0;
     join.assignedPort = static_cast<uint16_t>(localPort);
 
     std::vector<uint8_t> joinPacket(sizeof(paasphoos::PacketHeader) + sizeof(paasphoos::JoinInfo));
@@ -89,7 +94,6 @@ int main(int argc, char* argv[])
         uint64_t nowUs = paasphoos::getSteadyClockUs();
 
         // 1. Synthesize audio frame with rhythmic amplitude envelope
-        // Pulsing every 500 ms (2 Hz beat)
         double beatPhase = std::fmod(static_cast<double>(totalFrames * frameSamples) / sampleRate, 0.5);
         float envelope = static_cast<float>(std::exp(-beatPhase * 12.0)); // Plucked decay envelope
 
@@ -109,7 +113,7 @@ int main(int argc, char* argv[])
         header.magic = paasphoos::PROTOCOL_MAGIC;
         header.version = paasphoos::PROTOCOL_VERSION;
         header.type = paasphoos::PacketType::AUDIO_PCM16;
-        header.participantId = 1;
+        header.participantId = myParticipantId;
         header.channelCount = 2;
         header.sequenceNumber = ++audioSeq;
         header.timestampUs = nowUs;
@@ -131,7 +135,7 @@ int main(int argc, char* argv[])
             pingHdr.magic = paasphoos::PROTOCOL_MAGIC;
             pingHdr.version = paasphoos::PROTOCOL_VERSION;
             pingHdr.type = paasphoos::PacketType::PING;
-            pingHdr.participantId = 1;
+            pingHdr.participantId = myParticipantId;
             pingHdr.channelCount = 2;
             pingHdr.sequenceNumber = ++pingSeq;
             pingHdr.timestampUs = nowUs;
@@ -162,8 +166,13 @@ int main(int argc, char* argv[])
 
             if (inHdr.magic == paasphoos::PROTOCOL_MAGIC)
             {
-                if (inHdr.type == paasphoos::PacketType::PONG &&
-                    bytesRead >= static_cast<int>(sizeof(paasphoos::PacketHeader) + sizeof(paasphoos::PingPayload)))
+                if (inHdr.type == paasphoos::PacketType::JOIN_ACCEPT)
+                {
+                    myParticipantId = inHdr.participantId;
+                    std::cout << "[*] Accepted by host! Assigned Participant Slot: " << (int)myParticipantId << std::endl;
+                }
+                else if (inHdr.type == paasphoos::PacketType::PONG &&
+                         bytesRead >= static_cast<int>(sizeof(paasphoos::PacketHeader) + sizeof(paasphoos::PingPayload)))
                 {
                     paasphoos::PingPayload pong;
                     std::memcpy(&pong, recvBuffer.data() + sizeof(paasphoos::PacketHeader), sizeof(pong));
@@ -181,7 +190,7 @@ int main(int argc, char* argv[])
         if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastReportTime).count() >= 1000)
         {
             lastReportTime = now;
-            std::cout << "[BOT HUD] RTT: " << stats.getRttMs() << " ms | Jitter: "
+            std::cout << "[BOT " << (int)myParticipantId << " HUD] RTT: " << stats.getRttMs() << " ms | Jitter: "
                       << stats.getJitterMs() << " ms | Loss: " << stats.getPacketLossPercent()
                       << "% | Sent: " << stats.getPacketsSent()
                       << " | Recv: " << stats.getPacketsReceived()
@@ -192,6 +201,19 @@ int main(int argc, char* argv[])
         // Accurate frame timing: 128 samples @ 48kHz = 2.667 ms
         std::this_thread::sleep_for(std::chrono::microseconds(2666));
     }
+
+    // Send LEAVE_REQ before exit
+    paasphoos::PacketHeader leaveHdr;
+    leaveHdr.magic = paasphoos::PROTOCOL_MAGIC;
+    leaveHdr.version = paasphoos::PROTOCOL_VERSION;
+    leaveHdr.type = paasphoos::PacketType::LEAVE_REQ;
+    leaveHdr.participantId = myParticipantId;
+    leaveHdr.channelCount = 2;
+    leaveHdr.sequenceNumber = 0;
+    leaveHdr.timestampUs = paasphoos::getSteadyClockUs();
+    leaveHdr.sampleCount = 0;
+    leaveHdr.payloadBytes = 0;
+    socket.write(targetIp, targetPort, &leaveHdr, sizeof(leaveHdr));
 
     std::cout << "\n[*] Test-Bot terminated cleanly." << std::endl;
     return 0;

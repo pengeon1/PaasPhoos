@@ -13,6 +13,11 @@ AudioEngine::AudioEngine()
     : currentSampleRate(48000.0),
       currentBufferSize(128)
 {
+    localMixBuffer.setSize(2, 2048);
+    for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
+    {
+        remoteAudioBuffers[i].setSize(2, 2048);
+    }
 }
 
 AudioEngine::~AudioEngine()
@@ -138,11 +143,15 @@ void AudioEngine::audioDeviceAboutToStart(juce::AudioIODevice* device)
     tuner.prepareToPlay(currentSampleRate);
 
     // Pre-allocate local mixing and remote audio buffers (real-time safe)
-    localMixBuffer.setSize(2, std::max(currentBufferSize, 2048), false, false, false);
+    int allocSize = std::max(currentBufferSize, 2048);
+    localMixBuffer.setSize(2, allocSize, false, false, false);
     localMixBuffer.clear();
 
-    remoteAudioBuffer.setSize(2, std::max(currentBufferSize, 2048), false, false, false);
-    remoteAudioBuffer.clear();
+    for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
+    {
+        remoteAudioBuffers[i].setSize(2, allocSize, false, false, false);
+        remoteAudioBuffers[i].clear();
+    }
 
     float halfHwLatency = static_cast<float>(getHardwareLatencyMs() * 0.5);
     lanTransport.setHardwareLatencies(halfHwLatency, halfHwLatency);
@@ -155,13 +164,29 @@ void AudioEngine::audioDeviceStopped()
     metronome.reset();
     tuner.reset();
     localMixBuffer.setSize(0, 0);
-    remoteAudioBuffer.setSize(0, 0);
+    for (int i = 0; i < MAX_REMOTE_STRIPS; ++i)
+    {
+        remoteAudioBuffers[i].setSize(0, 0);
+    }
     sendChangeMessage();
 }
 
 double AudioEngine::getCpuUsage() const
 {
     return deviceManager.getCpuUsage() * 100.0;
+}
+
+int AudioEngine::getParticipantIdForRemoteStrip(int stripIndex) const noexcept
+{
+    uint8_t myId = lanTransport.getMyParticipantId();
+    int count = 0;
+    for (int p = 0; p < MAX_PARTICIPANTS; ++p)
+    {
+        if (p == myId) continue;
+        if (count == stripIndex) return p;
+        count++;
+    }
+    return -1;
 }
 
 void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChannelData,
@@ -183,23 +208,28 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
     if (numSamples <= 0)
         return;
 
-    // Check solo and mute logic across local and remote channels
+    // Check solo states across local channels and all remote peer channels
     const bool solo1 = channel1.solo.load(std::memory_order_relaxed);
     const bool solo2 = channel2.solo.load(std::memory_order_relaxed);
-    const bool soloRemote = remotePeer1.solo.load(std::memory_order_relaxed);
-    const bool anySolo = solo1 || solo2 || soloRemote;
+    bool anySolo = solo1 || solo2;
+
+    for (int s = 0; s < MAX_REMOTE_STRIPS; ++s)
+    {
+        if (remotePeers[s].solo.load(std::memory_order_relaxed))
+        {
+            anySolo = true;
+            break;
+        }
+    }
 
     const bool play1 = !channel1.mute.load(std::memory_order_relaxed) && (!anySolo || solo1);
     const bool play2 = !channel2.mute.load(std::memory_order_relaxed) && (!anySolo || solo2);
-    const bool playRemote = !remotePeer1.mute.load(std::memory_order_relaxed) && (!anySolo || soloRemote);
 
     const float gain1 = channel1.gain.load(std::memory_order_relaxed);
     const float gain2 = channel2.gain.load(std::memory_order_relaxed);
-    const float gainRemote = remotePeer1.gain.load(std::memory_order_relaxed);
 
     const float pan1 = juce::jlimit(-1.0f, 1.0f, channel1.pan.load(std::memory_order_relaxed));
     const float pan2 = juce::jlimit(-1.0f, 1.0f, channel2.pan.load(std::memory_order_relaxed));
-    const float panRemote = juce::jlimit(-1.0f, 1.0f, remotePeer1.pan.load(std::memory_order_relaxed));
 
     // Pan laws (linear taper)
     const float panL1 = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f - pan1) * 0.5f));
@@ -207,9 +237,6 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
 
     const float panL2 = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f - pan2) * 0.5f));
     const float panR2 = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f + pan2) * 0.5f));
-
-    const float panLRemote = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f - panRemote) * 0.5f));
-    const float panRRemote = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f + panRemote) * 0.5f));
 
     // Prepare local mix buffer
     float* mixL = localMixBuffer.getWritePointer(0);
@@ -243,10 +270,8 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
             tuner.pushSamples(in1, numSamples);
     }
 
-    // Decay Ch1 peak for smooth meter visualization
     float prevPeak1 = channel1.peakLevel.load(std::memory_order_relaxed);
-    float decayedPeak1 = std::max(ch1Peak, prevPeak1 * 0.92f);
-    channel1.peakLevel.store(decayedPeak1, std::memory_order_relaxed);
+    channel1.peakLevel.store(std::max(ch1Peak, prevPeak1 * 0.92f), std::memory_order_relaxed);
 
     // Process Channel 2 (Vocal / Secondary)
     float ch2Peak = 0.0f;
@@ -274,44 +299,63 @@ void AudioEngine::audioDeviceIOCallbackWithContext(const float* const* inputChan
             tuner.pushSamples(in2, numSamples);
     }
 
-    // Decay Ch2 peak
     float prevPeak2 = channel2.peakLevel.load(std::memory_order_relaxed);
-    float decayedPeak2 = std::max(ch2Peak, prevPeak2 * 0.92f);
-    channel2.peakLevel.store(decayedPeak2, std::memory_order_relaxed);
+    channel2.peakLevel.store(std::max(ch2Peak, prevPeak2 * 0.92f), std::memory_order_relaxed);
 
-    // Send local processed audio to connected peer over network (zero-latency monitoring remains unaffected)
+    // Send local processed audio to band over network (local monitoring remains zero-latency)
     lanTransport.pushLocalAudio(localMixBuffer.getArrayOfReadPointers(), 2, numSamples);
 
-    // Pull incoming audio from remote peer
-    lanTransport.pullRemoteAudio(remoteAudioBuffer.getArrayOfWritePointers(), 2, numSamples);
-    const float* remoteL = remoteAudioBuffer.getReadPointer(0);
-    const float* remoteR = remoteAudioBuffer.getReadPointer(1);
-
-    float remotePeak = 0.0f;
-    for (int i = 0; i < numSamples; ++i)
+    // Pull and mix audio for all 5 remote band member channels
+    for (int s = 0; s < MAX_REMOTE_STRIPS; ++s)
     {
-        float sL = remoteL[i];
-        float sR = remoteR[i];
-        float absPeak = std::max(std::abs(sL), std::abs(sR));
-        if (absPeak > remotePeak) remotePeak = absPeak;
+        int partId = getParticipantIdForRemoteStrip(s);
+        auto* peer = (partId >= 0) ? lanTransport.getPeer(partId) : nullptr;
+        bool isPeerActive = (peer != nullptr && peer->connected.load(std::memory_order_relaxed));
 
-        if (playRemote)
+        if (!isPeerActive)
         {
-            float processedL = sL * gainRemote;
-            float processedR = sR * gainRemote;
-            mixL[i] += (processedL * panLRemote);
-            mixR[i] += (processedR * panRRemote);
+            float prev = remotePeers[s].peakLevel.load(std::memory_order_relaxed);
+            remotePeers[s].peakLevel.store(prev * 0.90f, std::memory_order_relaxed);
+            continue;
         }
+
+        // Pull audio from peer's jitter buffer with drift correction
+        lanTransport.pullPeerAudio(partId, remoteAudioBuffers[s].getArrayOfWritePointers(), 2, numSamples);
+        const float* rL = remoteAudioBuffers[s].getReadPointer(0);
+        const float* rR = remoteAudioBuffers[s].getReadPointer(1);
+
+        const bool soloPeer = remotePeers[s].solo.load(std::memory_order_relaxed);
+        const bool playPeer = !remotePeers[s].mute.load(std::memory_order_relaxed) && (!anySolo || soloPeer);
+        const float gainPeer = remotePeers[s].gain.load(std::memory_order_relaxed);
+        const float panPeer = juce::jlimit(-1.0f, 1.0f, remotePeers[s].pan.load(std::memory_order_relaxed));
+        const float panLPeer = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f - panPeer) * 0.5f));
+        const float panRPeer = std::sqrt(juce::jlimit(0.0f, 1.0f, (1.0f + panPeer) * 0.5f));
+
+        float stripPeak = 0.0f;
+        for (int i = 0; i < numSamples; ++i)
+        {
+            float s0 = rL[i];
+            float s1 = rR[i];
+            float absMax = std::max(std::abs(s0), std::abs(s1));
+            if (absMax > stripPeak) stripPeak = absMax;
+
+            if (playPeer)
+            {
+                float procL = s0 * gainPeer;
+                float procR = s1 * gainPeer;
+                mixL[i] += (procL * panLPeer);
+                mixR[i] += (procR * panRPeer);
+            }
+        }
+
+        if (stripPeak >= 0.999f)
+            remotePeers[s].clipDetected.store(true, std::memory_order_relaxed);
+
+        float prevPeerPeak = remotePeers[s].peakLevel.load(std::memory_order_relaxed);
+        remotePeers[s].peakLevel.store(std::max(stripPeak, prevPeerPeak * 0.92f), std::memory_order_relaxed);
     }
 
-    if (remotePeak >= 0.999f)
-        remotePeer1.clipDetected.store(true, std::memory_order_relaxed);
-
-    float prevRemotePeak = remotePeer1.peakLevel.load(std::memory_order_relaxed);
-    float decayedRemotePeak = std::max(remotePeak, prevRemotePeak * 0.92f);
-    remotePeer1.peakLevel.store(decayedRemotePeak, std::memory_order_relaxed);
-
-    // Add Metronome click directly to output mix
+    // Add Metronome click to local monitor mix
     metronome.process(localMixBuffer, 0, numSamples);
 
     // Apply Master Volume and write to hardware output

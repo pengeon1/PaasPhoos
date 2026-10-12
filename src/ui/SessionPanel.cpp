@@ -9,10 +9,17 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     audioEngine.getLanDiscovery().addChangeListener(this);
     audioEngine.getLanTransport().addChangeListener(this);
 
-    headerLabel.setText("SESSION & NETWORK (LAN MODE - 2 PEERS)", juce::dontSendNotification);
+    headerLabel.setText("SESSION & NETWORK (LAN MODE - 6 BAND PARTICIPANTS)", juce::dontSendNotification);
     headerLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(headerLabel);
+
+    bandCountBadge.setText("BAND: 1/6", juce::dontSendNotification);
+    bandCountBadge.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    bandCountBadge.setJustificationType(juce::Justification::centred);
+    bandCountBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e293b));
+    bandCountBadge.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
+    addAndMakeVisible(bandCountBadge);
 
     // Mode Buttons
     lanModeButton.setButtonText("LAN Mode (Active)");
@@ -46,8 +53,8 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         {
             adapterInfo = NetworkAdapterDetector::detectPrimaryAdapter();
             int port = LanAudioTransport::DEFAULT_AUDIO_PORT;
-            audioEngine.getLanTransport().startAsHost(port);
-            audioEngine.getLanDiscovery().startHosting("PaasPhoos Band Jam", "Host", port);
+            audioEngine.getLanTransport().startAsHost(port, "Host Leader", "Guitar 1");
+            audioEngine.getLanDiscovery().startHosting("PaasPhoos Band Jam", "Host Leader", port);
             hostSessionButton.setButtonText("STOP HOSTING");
             hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c));
             hostStatusLabel.setText(juce::String::formatted("Hosting on %s:%d", adapterInfo.ipAddress.toRawUTF8(), port), juce::dontSendNotification);
@@ -80,7 +87,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         if (idx >= 0 && idx < static_cast<int>(sessions.size()))
         {
             auto& s = sessions[idx];
-            audioEngine.getLanTransport().startAsClient(s.ipAddress, s.audioPort);
+            audioEngine.getLanTransport().startAsClient(s.ipAddress, s.audioPort, "Musician", "Guitar 2");
         }
     };
     addAndMakeVisible(joinDiscoveredButton);
@@ -115,7 +122,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         juce::String ip = manualIpEditor.getText().trim();
         int port = manualPortEditor.getText().getIntValue();
         if (port <= 0) port = 44045;
-        audioEngine.getLanTransport().startAsClient(ip, port);
+        audioEngine.getLanTransport().startAsClient(ip, port, "Musician", "Band Member");
     };
     addAndMakeVisible(connectManualButton);
 
@@ -139,24 +146,40 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     };
     addAndMakeVisible(disconnectButton);
 
+    // Jitter buffer settings
+    jitterBufferLabel.setText("Jitter Buffer:", juce::dontSendNotification);
+    jitterBufferLabel.setFont(juce::FontOptions(11.0f));
+    jitterBufferLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
+    addAndMakeVisible(jitterBufferLabel);
+
+    jitterBufferCombo.addItem("Auto (Adaptive RFC 3550)", 1);
+    jitterBufferCombo.addItem("Manual: 4 ms (Ultra LAN)", 2);
+    jitterBufferCombo.addItem("Manual: 8 ms (Default LAN)", 3);
+    jitterBufferCombo.addItem("Manual: 15 ms (Wi-Fi/LAN)", 4);
+    jitterBufferCombo.addItem("Manual: 25 ms (Safe)", 5);
+    jitterBufferCombo.addItem("Manual: 40 ms (WAN)", 6);
+    jitterBufferCombo.setSelectedId(1, juce::dontSendNotification);
+    jitterBufferCombo.onChange = [this]() { applyJitterBufferSettings(); };
+    addAndMakeVisible(jitterBufferCombo);
+
     // Network Diagnostics HUD
     hudPingLabel.setText("Ping: -- ms", juce::dontSendNotification);
-    hudPingLabel.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    hudPingLabel.setFont(juce::FontOptions(11.5f, juce::Font::bold));
     hudPingLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff8fafc));
     addAndMakeVisible(hudPingLabel);
 
     hudJitterLabel.setText("Jitter: -- ms", juce::dontSendNotification);
-    hudJitterLabel.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    hudJitterLabel.setFont(juce::FontOptions(11.5f, juce::Font::bold));
     hudJitterLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff8fafc));
     addAndMakeVisible(hudJitterLabel);
 
     hudLossLabel.setText("Loss: 0.0%", juce::dontSendNotification);
-    hudLossLabel.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    hudLossLabel.setFont(juce::FontOptions(11.5f, juce::Font::bold));
     hudLossLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff8fafc));
     addAndMakeVisible(hudLossLabel);
 
     hudTotalLatencyLabel.setText("Total Ear-to-Ear: -- ms", juce::dontSendNotification);
-    hudTotalLatencyLabel.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    hudTotalLatencyLabel.setFont(juce::FontOptions(11.5f, juce::Font::bold));
     hudTotalLatencyLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38bdf8));
     addAndMakeVisible(hudTotalLatencyLabel);
 
@@ -175,7 +198,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addChildComponent(adapterWarningLabel);
 
     updateAdapterWarning();
-    startTimerHz(10); // 10 FPS stats update
+    startTimerHz(10);
 }
 
 SessionPanel::~SessionPanel()
@@ -183,6 +206,31 @@ SessionPanel::~SessionPanel()
     stopTimer();
     audioEngine.getLanDiscovery().removeChangeListener(this);
     audioEngine.getLanTransport().removeChangeListener(this);
+}
+
+void SessionPanel::applyJitterBufferSettings()
+{
+    int id = jitterBufferCombo.getSelectedId();
+    auto& transport = audioEngine.getLanTransport();
+
+    for (int p = 0; p < MAX_PARTICIPANTS; ++p)
+    {
+        if (id == 1)
+        {
+            transport.setJitterBufferMode(p, JitterBufferMode::AUTO);
+        }
+        else
+        {
+            transport.setJitterBufferMode(p, JitterBufferMode::MANUAL);
+            float delay = 8.0f;
+            if (id == 2) delay = 4.0f;
+            else if (id == 3) delay = 8.0f;
+            else if (id == 4) delay = 15.0f;
+            else if (id == 5) delay = 25.0f;
+            else if (id == 6) delay = 40.0f;
+            transport.setManualTargetDelayMs(p, delay);
+        }
+    }
 }
 
 void SessionPanel::changeListenerCallback(juce::ChangeBroadcaster* /*source*/)
@@ -227,23 +275,26 @@ void SessionPanel::updateNetworkStatsDisplay()
     auto& transport = audioEngine.getLanTransport();
     bool isConn = transport.isConnected();
     auto role = transport.getRole();
+    int activeCount = transport.getActivePeerCount();
+
+    bandCountBadge.setText(juce::String::formatted("BAND: %d/6", activeCount), juce::dontSendNotification);
 
     if (isConn)
     {
-        juce::String roleText = (role == SessionRole::HOST) ? "HOSTING" : "PEER CONNECTED";
-        sessionStatusBadge.setText(roleText + " (" + transport.getRemoteAddress() + ")", juce::dontSendNotification);
+        juce::String roleText = (role == SessionRole::HOST) ? "HOST" : "CONNECTED";
+        sessionStatusBadge.setText(juce::String::formatted("%s (%s) [%d/6]", roleText.toRawUTF8(), transport.getRemoteAddress().toRawUTF8(), activeCount), juce::dontSendNotification);
         sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff064e3b));
         sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));
     }
     else if (role == SessionRole::HOST)
     {
-        sessionStatusBadge.setText("HOSTING: WAITING FOR PEER", juce::dontSendNotification);
+        sessionStatusBadge.setText("HOSTING: WAITING FOR PEERS", juce::dontSendNotification);
         sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff78350f));
         sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xfffbbf24));
     }
     else if (role == SessionRole::CLIENT)
     {
-        sessionStatusBadge.setText("CONNECTING...", juce::dontSendNotification);
+        sessionStatusBadge.setText("CONNECTING TO HOST...", juce::dontSendNotification);
         sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e3a8a));
         sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xff60a5fa));
     }
@@ -324,23 +375,25 @@ void SessionPanel::resized()
 
     // Top Header & Mode
     auto topRow = area.removeFromTop(24);
-    headerLabel.setBounds(topRow.removeFromLeft(330));
+    headerLabel.setBounds(topRow.removeFromLeft(360));
+    bandCountBadge.setBounds(topRow.removeFromLeft(85));
+    topRow.removeFromLeft(10);
+
     internetModeButton.setBounds(topRow.removeFromRight(130));
     topRow.removeFromRight(6);
     lanModeButton.setBounds(topRow.removeFromRight(130));
 
     area.removeFromTop(4);
 
-    // Warning Banner if visible
     if (adapterWarningLabel.isVisible())
     {
         adapterWarningLabel.setBounds(area.removeFromTop(20));
         area.removeFromTop(4);
     }
 
-    // Two Columns: Host (Left 35%) & Join (Right 65%)
+    // Two Columns: Host (Left 34%) & Join (Right 66%)
     auto body = area.removeFromTop(62);
-    auto leftCol = body.removeFromLeft(body.getWidth() * 0.36);
+    auto leftCol = body.removeFromLeft(body.getWidth() * 0.35);
     body.removeFromLeft(12);
     auto rightCol = body;
 
@@ -372,21 +425,25 @@ void SessionPanel::resized()
 
     area.removeFromTop(4);
 
-    // Bottom HUD Row: Diagnostics + Status Badge
+    // Bottom HUD Row: Diagnostics + Jitter Buffer controls + Status Badge
     auto hudRow = area.removeFromTop(26);
-    sessionStatusBadge.setBounds(hudRow.removeFromLeft(190));
+    sessionStatusBadge.setBounds(hudRow.removeFromLeft(180));
     hudRow.removeFromLeft(6);
-    disconnectButton.setBounds(hudRow.removeFromLeft(95));
-    hudRow.removeFromLeft(12);
+    disconnectButton.setBounds(hudRow.removeFromLeft(90));
+    hudRow.removeFromLeft(10);
 
-    hudPingLabel.setBounds(hudRow.removeFromLeft(90));
-    hudRow.removeFromLeft(8);
-    hudJitterLabel.setBounds(hudRow.removeFromLeft(90));
-    hudRow.removeFromLeft(8);
-    hudLossLabel.setBounds(hudRow.removeFromLeft(80));
-    hudRow.removeFromLeft(8);
-    hudTotalLatencyLabel.setBounds(hudRow.removeFromLeft(150));
-    hudRow.removeFromLeft(8);
+    jitterBufferLabel.setBounds(hudRow.removeFromLeft(75));
+    jitterBufferCombo.setBounds(hudRow.removeFromLeft(160));
+    hudRow.removeFromLeft(10);
+
+    hudPingLabel.setBounds(hudRow.removeFromLeft(85));
+    hudRow.removeFromLeft(6);
+    hudJitterLabel.setBounds(hudRow.removeFromLeft(85));
+    hudRow.removeFromLeft(6);
+    hudLossLabel.setBounds(hudRow.removeFromLeft(75));
+    hudRow.removeFromLeft(6);
+    hudTotalLatencyLabel.setBounds(hudRow.removeFromLeft(140));
+    hudRow.removeFromLeft(6);
     healthStatusPill.setBounds(hudRow);
 }
 

@@ -14,6 +14,7 @@ namespace paasphoos
  */
 constexpr uint32_t PROTOCOL_MAGIC = 0x50504853;
 constexpr uint8_t PROTOCOL_VERSION = 1;
+constexpr int MAX_PARTICIPANTS = 6; // 1 Host + up to 5 Clients
 
 enum class PacketType : uint8_t
 {
@@ -24,6 +25,8 @@ enum class PacketType : uint8_t
     DISCOVERY_RESP  = 0x05,
     JOIN_REQ        = 0x06,
     JOIN_ACCEPT     = 0x07,
+    PEER_UPDATE     = 0x08,
+    LEAVE_REQ       = 0x09,
     AUDIO_PCM16     = 0x10,
     AUDIO_FLOAT32   = 0x11
 };
@@ -33,7 +36,7 @@ struct PacketHeader
     uint32_t magic;           // PROTOCOL_MAGIC
     uint8_t version;          // PROTOCOL_VERSION
     PacketType type;          // PacketType
-    uint8_t participantId;    // 0 = host, 1..6 = peers
+    uint8_t participantId;    // 0 = host, 1..5 = peers
     uint8_t channelCount;     // 1 = mono, 2 = stereo
     uint32_t sequenceNumber;  // Monotonically increasing sequence
     uint64_t timestampUs;     // Send timestamp in microseconds
@@ -66,6 +69,23 @@ struct JoinInfo
     char roleOrInstrument[32]; // e.g. "Guitar 2", "Vocals", "Drums"
     uint8_t assignedId;
     uint16_t assignedPort;
+};
+
+// Multi-peer participant entry
+struct ParticipantEntry
+{
+    uint8_t participantId; // 0 = Host, 1..5 = Peers
+    uint8_t isConnected;   // 1 = active, 0 = empty/left
+    char name[24];
+    char roleOrInstrument[24];
+    uint16_t port;
+};
+
+// Multi-peer directory update broadcast
+struct PeerUpdatePayload
+{
+    uint8_t totalParticipants;
+    ParticipantEntry entries[MAX_PARTICIPANTS];
 };
 
 #pragma pack(pop)

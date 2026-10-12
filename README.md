@@ -90,9 +90,9 @@ To compile PaasPhoos with native Steinberg ASIO SDK support:
 
 ## 5. Development Milestones
 - **M1 [COMPLETED]**: Real-time Audio I/O + WASAPI/ASIO device manager + local zero-latency monitor + mixer console + sample-accurate metronome + chromatic tuner.
-- **M2 [NEXT]**: LAN Mode, 2 users, raw uncompressed PCM over UDP, live latency stats.
-- **M3**: 6 users, adaptive jitter buffer, clock drift correction.
-- **M4**: VST3 plugin hosting + built-in DSP effects chain.
+- **M2 [COMPLETED]**: LAN Mode, 2 users, raw uncompressed PCM over UDP, live latency stats, Wi-Fi detector, headless test-bot.
+- **M3 [COMPLETED]**: 6-piece band rehearsal, in-app star relay, per-peer adaptive jitter buffer (RFC 3550), packet loss concealment (PLC), sample clock drift correction (Hermite resampler).
+- **M4 [NEXT]**: VST3 plugin hosting + built-in DSP effects chain.
 - **M5**: Synthesized drum machine engine + step sequencer + MIDI learn.
 - **M6**: Internet Mode with Opus codec + UDP hole punching + network simulator.
 - **M7**: Multitrack WAV recording, setlist manager, push-to-talk talkback, portable release.

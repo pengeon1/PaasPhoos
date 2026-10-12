@@ -24,10 +24,12 @@ private:
     void refreshDiscoveredList();
     void updateNetworkStatsDisplay();
     void updateAdapterWarning();
+    void applyJitterBufferSettings();
 
     AudioEngine& audioEngine;
 
     juce::Label headerLabel;
+    juce::Label bandCountBadge;
 
     // Mode Selector
     juce::TextButton lanModeButton;
@@ -54,6 +56,10 @@ private:
     // Active session info
     juce::Label sessionStatusBadge;
     juce::TextButton disconnectButton;
+
+    // Jitter buffer controls
+    juce::Label jitterBufferLabel;
+    juce::ComboBox jitterBufferCombo;
 
     // Live Network Diagnostics HUD
     juce::Label hudPingLabel;

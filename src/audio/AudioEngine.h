@@ -5,6 +5,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <atomic>
 #include <memory>
+#include <array>
 #include "Metronome.h"
 #include "Tuner.h"
 #include "RealtimeRingBuffer.h"
@@ -28,6 +29,8 @@ class AudioEngine : public juce::AudioIODeviceCallback,
                     public juce::ChangeBroadcaster
 {
 public:
+    static constexpr int MAX_REMOTE_STRIPS = 5;
+
     AudioEngine();
     ~AudioEngine() override;
 
@@ -67,6 +70,15 @@ public:
     const ChannelSettings& getChannel1() const { return channel1; }
     const ChannelSettings& getChannel2() const { return channel2; }
 
+    // Multi-Peer Remote Channels (5 band members)
+    int getNumRemotePeers() const noexcept { return MAX_REMOTE_STRIPS; }
+    ChannelSettings& getRemotePeer(int index) { return remotePeers[juce::jlimit(0, MAX_REMOTE_STRIPS - 1, index)]; }
+    const ChannelSettings& getRemotePeer(int index) const { return remotePeers[juce::jlimit(0, MAX_REMOTE_STRIPS - 1, index)]; }
+    ChannelSettings& getRemotePeer1() { return remotePeers[0]; }
+    const ChannelSettings& getRemotePeer1() const { return remotePeers[0]; }
+
+    int getParticipantIdForRemoteStrip(int stripIndex) const noexcept;
+
     void setMasterVolume(float vol) noexcept { masterVolume.store(juce::jlimit(0.0f, 2.0f, vol), std::memory_order_relaxed); }
     float getMasterVolume() const noexcept { return masterVolume.load(std::memory_order_relaxed); }
 
@@ -83,11 +95,9 @@ public:
     void setTuningInputChannel(int ch) noexcept { tuningInputChannel.store(ch, std::memory_order_relaxed); }
     int getTuningInputChannel() const noexcept { return tuningInputChannel.load(std::memory_order_relaxed); }
 
-    // Networking & Session (M2 LAN Mode)
+    // Networking & Session (M3 Multi-Peer LAN Mode)
     LanAudioTransport& getLanTransport() { return lanTransport; }
     LanDiscovery& getLanDiscovery() { return lanDiscovery; }
-    ChannelSettings& getRemotePeer1() { return remotePeer1; }
-    const ChannelSettings& getRemotePeer1() const { return remotePeer1; }
 
     // Diagnostic CPU Load
     double getCpuUsage() const;
@@ -101,7 +111,7 @@ private:
 
     ChannelSettings channel1; // Input 1: Guitar / Instrument
     ChannelSettings channel2; // Input 2: Vocal / Aux
-    ChannelSettings remotePeer1; // Remote Musician Channel Strip
+    std::array<ChannelSettings, MAX_REMOTE_STRIPS> remotePeers; // 5 Remote Band Members
 
     std::atomic<float> masterVolume{1.0f};
     std::atomic<float> masterPeakL{0.0f};
@@ -118,7 +128,7 @@ private:
 
     // Temporary real-time buffers for mixing (pre-allocated)
     juce::AudioBuffer<float> localMixBuffer;
-    juce::AudioBuffer<float> remoteAudioBuffer;
+    std::array<juce::AudioBuffer<float>, MAX_REMOTE_STRIPS> remoteAudioBuffers;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioEngine)
 };

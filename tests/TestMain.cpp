@@ -7,6 +7,7 @@
 #include "../src/audio/Tuner.h"
 #include "../src/network/NetworkPacket.h"
 #include "../src/network/NetworkStats.h"
+#include "../src/network/JitterBuffer.h"
 
 void testRingBuffer()
 {
@@ -16,7 +17,7 @@ void testRingBuffer()
 
     assert(ring.getCapacity() == 256);
     assert(ring.getNumReadyToRead() == 0);
-    assert(ring.getNumFreeSpace() == 255); // AbstractFifo reserves 1 slot to distinguish full/empty
+    assert(ring.getNumFreeSpace() == 255);
 
     std::vector<float> ch0(64, 1.0f);
     std::vector<float> ch1(64, 2.0f);
@@ -54,11 +55,10 @@ void testMetronome()
     assert(metro.getTimeSignatureNumerator() == 4);
     assert(metro.isEnabled() == true);
 
-    juce::AudioBuffer<float> buffer(2, 48000); // 1 second of audio = exactly 2 beats at 120 BPM
+    juce::AudioBuffer<float> buffer(2, 48000);
     buffer.clear();
     metro.process(buffer, 0, 48000);
 
-    // Audio should contain click bursts
     float maxAmp = buffer.getMagnitude(0, 48000);
     assert(maxAmp > 0.05f);
 
@@ -72,7 +72,6 @@ void testTuner()
     tuner.prepareToPlay(48000.0);
     tuner.setEnabled(true);
 
-    // Synthesize 440 Hz test sine wave (Concert A4)
     std::vector<float> sine440(paasphoos::Tuner::ANALYSIS_BUFFER_SIZE);
     for (size_t i = 0; i < sine440.size(); ++i)
     {
@@ -84,9 +83,9 @@ void testTuner()
 
     auto result = tuner.getCurrentResult();
     assert(result.isActive);
-    assert(result.noteNumber == 69); // MIDI note 69 is A4
-    assert(std::abs(result.frequency - 440.0f) < 2.0f); // Within 2 Hz accuracy
-    assert(std::abs(result.centsOffset) < 5.0f); // Within 5 cents
+    assert(result.noteNumber == 69); // MIDI A4
+    assert(std::abs(result.frequency - 440.0f) < 2.0f);
+    assert(std::abs(result.centsOffset) < 5.0f);
 
     std::string noteName = paasphoos::Tuner::getNoteName(result.noteNumber);
     assert(noteName == "A4");
@@ -140,15 +139,14 @@ void testNetworkStats()
     // Simulate RTT measurement (4.0 ms)
     stats.recordRtt(4.0f, 1.5f, 1.5f, 2.0f);
     assert(stats.getRttMs() == 4.0f);
-    // Total = In(1.5) + (RTT/2 = 2.0) + JitterBuf(2.0) + Out(1.5) = 7.0 ms
     assert(std::abs(stats.getTotalLatencyMs() - 7.0f) < 0.1f);
 
-    // Simulate packet stream arrivals for jitter
+    // Simulate packet arrivals
     uint64_t baseSendUs = 1000000;
-    uint64_t baseRecvUs = 1005000; // 5ms transit
+    uint64_t baseRecvUs = 1005000;
     stats.recordReceivedPacket(1, baseSendUs, baseRecvUs);
-    stats.recordReceivedPacket(2, baseSendUs + 2666, baseRecvUs + 2666 + 500); // 5.5ms transit (+0.5ms jitter)
-    stats.recordReceivedPacket(3, baseSendUs + 5333, baseRecvUs + 5333 - 300); // 4.7ms transit
+    stats.recordReceivedPacket(2, baseSendUs + 2666, baseRecvUs + 2666 + 500);
+    stats.recordReceivedPacket(3, baseSendUs + 5333, baseRecvUs + 5333 - 300);
 
     assert(stats.getPacketsReceived() == 3);
     assert(stats.getJitterMs() >= 0.0f);
@@ -156,10 +154,120 @@ void testNetworkStats()
     std::cout << "  NetworkStats & Jitter passed! Total Latency: " << stats.getTotalLatencyMs() << " ms" << std::endl;
 }
 
+void testJitterBuffer()
+{
+    std::cout << "[TEST] Running JitterBuffer Adaptive & Playout tests..." << std::endl;
+    paasphoos::JitterBuffer jb;
+    jb.prepare(48000.0, 2, 8192);
+    jb.setMode(paasphoos::JitterBufferMode::MANUAL);
+    jb.setManualTargetDelayMs(4.0f); // 4ms = 192 samples @ 48kHz
+
+    auto metricsBefore = jb.getMetrics();
+    assert(!metricsBefore.isPrimed);
+
+    // Verify unprimed buffer outputs silence
+    std::vector<float> out0(64, 1.0f);
+    std::vector<float> out1(64, 1.0f);
+    float* outChannels[2] = { out0.data(), out1.data() };
+    jb.pullAudio(outChannels, 2, 64);
+    assert(out0[0] == 0.0f && out1[0] == 0.0f);
+
+    // Push audio packet 1 (128 samples = 2.67ms)
+    std::vector<float> in0(128, 0.75f);
+    std::vector<float> in1(128, 0.75f);
+    const float* inChannels[2] = { in0.data(), in1.data() };
+    jb.pushPacket(1, paasphoos::getSteadyClockUs(), inChannels, 2, 128);
+
+    // Still less than 192 samples -> should still not be primed
+    assert(!jb.getMetrics().isPrimed);
+
+    // Push packet 2 (total = 256 samples >= 192 threshold) -> primes!
+    jb.pushPacket(2, paasphoos::getSteadyClockUs(), inChannels, 2, 128);
+    assert(jb.getMetrics().isPrimed);
+
+    // Pull audio now: should produce valid audio (non-zero)
+    jb.pullAudio(outChannels, 2, 64);
+    assert(std::abs(out0[0]) > 0.01f);
+
+    std::cout << "  JitterBuffer adaptive priming and playout passed!" << std::endl;
+}
+
+void testJitterBufferPLCAndDrift()
+{
+    std::cout << "[TEST] Running JitterBuffer PLC & Clock Drift Correction tests..." << std::endl;
+    paasphoos::JitterBuffer jb;
+    jb.prepare(48000.0, 2, 8192);
+    jb.setMode(paasphoos::JitterBufferMode::MANUAL);
+    jb.setManualTargetDelayMs(4.0f);
+
+    // Push packets to prime
+    std::vector<float> inData(128, 0.8f);
+    const float* inPlanes[2] = { inData.data(), inData.data() };
+    jb.pushPacket(1, paasphoos::getSteadyClockUs(), inPlanes, 2, 128);
+    jb.pushPacket(2, paasphoos::getSteadyClockUs(), inPlanes, 2, 128);
+    assert(jb.getMetrics().isPrimed);
+
+    // Pull all available samples to force starvation / PLC
+    std::vector<float> out0(128, 0.0f);
+    std::vector<float> out1(128, 0.0f);
+    float* outPlanes[2] = { out0.data(), out1.data() };
+
+    jb.pullAudio(outPlanes, 2, 128);
+    jb.pullAudio(outPlanes, 2, 128);
+    // Now starved: pull again triggers Packet Loss Concealment (PLC)
+    jb.pullAudio(outPlanes, 2, 128);
+
+    auto metrics = jb.getMetrics();
+    assert(metrics.concealmentCount > 0);
+    assert(metrics.underrunCount > 0);
+
+    // Ensure output values did not explode to NaN or inf
+    assert(!std::isnan(out0[0]) && !std::isinf(out0[0]));
+
+    std::cout << "  JitterBuffer PLC & Drift tests passed! Concealments recorded: " << metrics.concealmentCount << std::endl;
+}
+
+void testMultiPeerPacket()
+{
+    std::cout << "[TEST] Running Multi-Peer Directory Packet tests..." << std::endl;
+    paasphoos::PeerUpdatePayload payload;
+    std::memset(&payload, 0, sizeof(payload));
+    payload.totalParticipants = 3;
+
+    payload.entries[0].participantId = 0;
+    payload.entries[0].isConnected = 1;
+    strcpy_s(payload.entries[0].name, "Band Host");
+    strcpy_s(payload.entries[0].roleOrInstrument, "Lead Guitar");
+
+    payload.entries[1].participantId = 1;
+    payload.entries[1].isConnected = 1;
+    strcpy_s(payload.entries[1].name, "Vocalist");
+    strcpy_s(payload.entries[1].roleOrInstrument, "Vocals");
+
+    payload.entries[2].participantId = 2;
+    payload.entries[2].isConnected = 1;
+    strcpy_s(payload.entries[2].name, "Drummer");
+    strcpy_s(payload.entries[2].roleOrInstrument, "Drums");
+
+    std::vector<uint8_t> buffer(sizeof(payload));
+    std::memcpy(buffer.data(), &payload, sizeof(payload));
+
+    paasphoos::PeerUpdatePayload received;
+    std::memcpy(&received, buffer.data(), sizeof(received));
+
+    assert(received.totalParticipants == 3);
+    assert(std::string(received.entries[0].name) == "Band Host");
+    assert(std::string(received.entries[1].name) == "Vocalist");
+    assert(std::string(received.entries[2].name) == "Drummer");
+    assert(received.entries[2].participantId == 2);
+
+    std::cout << "  Multi-Peer Directory Packet serialization passed!" << std::endl;
+}
+
 int main()
 {
     std::cout << "===========================================" << std::endl;
-    std::cout << "  Running PaasPhoos M1 + M2 Audio/Net Tests" << std::endl;
+    std::cout << "  Running PaasPhoos M1 + M2 + M3 Test Suite" << std::endl;
     std::cout << "===========================================" << std::endl;
 
     testRingBuffer();
@@ -167,7 +275,12 @@ int main()
     testTuner();
     testPacketSerialization();
     testNetworkStats();
+    testJitterBuffer();
+    testJitterBufferPLCAndDrift();
+    testMultiPeerPacket();
 
-    std::cout << "\nALL AUDIO AND NETWORK TESTS PASSED SUCCESSFULLY!" << std::endl;
+    std::cout << "\n===========================================" << std::endl;
+    std::cout << "ALL 8 AUDIO, NETWORK & M3 TESTS PASSED!" << std::endl;
+    std::cout << "===========================================" << std::endl;
     return 0;
 }
