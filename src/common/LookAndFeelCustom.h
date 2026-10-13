@@ -105,28 +105,27 @@ public:
             textEditor.findColour(juce::TextEditor::backgroundColourId).getAlpha() > 0)
         {
             g.setColour(textEditor.findColour(juce::TextEditor::backgroundColourId));
-            float cornerRadius = juce::jmin((float)height * 0.42f, 18.0f);
-            g.fillRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius);
+            float cornerRadius = juce::jlimit(6.0f, 10.0f, (float)height * 0.26f);
+            g.fillRoundedRectangle(0.5f, 0.5f, (float)width - 1.0f, (float)height - 1.0f, cornerRadius);
         }
     }
 
     void drawTextEditorOutline(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
     {
-        float cornerRadius = juce::jmin((float)height * 0.42f, 18.0f);
+        float cornerRadius = juce::jlimit(6.0f, 10.0f, (float)height * 0.26f);
         if (textEditor.hasKeyboardFocus(true))
         {
-            // Outer glow
-            g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.30f));
-            g.drawRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius, 3.0f);
+            // Crisp focus highlight with subtle ambient glow
+            g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.25f));
+            g.drawRoundedRectangle(0.5f, 0.5f, (float)width - 1.0f, (float)height - 1.0f, cornerRadius, 2.0f);
 
-            // Crisp inner highlight
             g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex));
-            g.drawRoundedRectangle(1.5f, 1.5f, (float)width - 3.0f, (float)height - 3.0f, cornerRadius, 1.5f);
+            g.drawRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius, 1.2f);
         }
         else
         {
             g.setColour(textEditor.findColour(juce::TextEditor::outlineColourId));
-            g.drawRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius, 1.0f);
+            g.drawRoundedRectangle(0.5f, 0.5f, (float)width - 1.0f, (float)height - 1.0f, cornerRadius, 1.0f);
         }
     }
 

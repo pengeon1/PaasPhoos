@@ -132,10 +132,10 @@ IntroScreenComponent::IntroScreenComponent()
     // Single-lined input text box with smooth rounded edges & comfortable padding
     nameEditor.setMultiLine(false);
     nameEditor.setReturnKeyStartsNewLine(false);
-    nameEditor.setIndents(16, 0);
+    nameEditor.setBorder(juce::BorderSize<int>(0));
     nameEditor.setInputRestrictions(24);
     nameEditor.setTextToShowWhenEmpty("Enter your musician handle...", juce::Colour(ThemeConfig::kTextDimHex));
-    nameEditor.setFont(Typography::bodyStrong().withHeight(15.0f));
+    nameEditor.setFont(Typography::body().withHeight(15.0f));
     nameEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
     nameEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
     nameEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
@@ -828,10 +828,12 @@ void IntroScreenComponent::resized()
         int subY = titleY + 28;
         cardSubtitleLabel.setBounds(startX, subY, contentW, 18);
 
-        // Name text input field
-        int inputY = subY + 30;
-        int inputH = 44;
+        // Name text input field: single-line compact height (38px) with vertically centered text
+        int inputY = subY + 28;
+        int inputH = 38;
         nameEditor.setBounds(startX, inputY, contentW, inputH);
+        int topPad = (inputH - 17) / 2; // 10px
+        nameEditor.setIndents(14, topPad);
 
         // Role Selection Chips row
         int chipY = inputY + inputH + 16;
