@@ -92,8 +92,8 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         {
             adapterInfo = NetworkAdapterDetector::detectPrimaryAdapter();
             int port = LanAudioTransport::DEFAULT_AUDIO_PORT;
-            audioEngine.getLanTransport().startAsHost(port, "Host Leader", "Guitar 1");
-            audioEngine.getLanDiscovery().startHosting("PaasPhoos Band Jam", "Host Leader", port);
+            audioEngine.getLanTransport().startAsHost(port, localMusicianName, localInstrumentRole);
+            audioEngine.getLanDiscovery().startHosting("PaasPhoos (" + localMusicianName + ")", localMusicianName, port);
             hostSessionButton.setButtonText("STOP HOSTING");
             hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c));
 
@@ -343,13 +343,13 @@ void SessionPanel::executeJoinWithCode(const juce::String& code)
     int outPort = 0;
     if (StunClient::parseRoomCode(clean, outIp, outPort))
     {
-        audioEngine.getLanTransport().startAsClient(outIp, outPort, "Musician", "Band Member");
+        audioEngine.getLanTransport().startAsClient(outIp, outPort, localMusicianName, localInstrumentRole);
     }
     else
     {
         // Try fallback raw direct host connect
         int defaultPort = 44045;
-        audioEngine.getLanTransport().startAsClient(clean, defaultPort, "Musician", "Band Member");
+        audioEngine.getLanTransport().startAsClient(clean, defaultPort, localMusicianName, localInstrumentRole);
     }
 }
 

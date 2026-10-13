@@ -60,6 +60,12 @@ public:
     void resized() override;
     void timerCallback() override;
 
+    void setLocalMusicianName(const juce::String& name, const juce::String& role)
+    {
+        if (channel1Strip != nullptr)
+            channel1Strip->setChannelName("YOU: " + name.toUpperCase(), role);
+    }
+
 private:
     AudioEngine& audioEngine;
 

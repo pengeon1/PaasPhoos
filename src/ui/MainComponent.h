@@ -10,6 +10,7 @@
 #include "EffectsPanel.h"
 #include "DrumPanel.h"
 #include "RehearsalToolsPanel.h"
+#include "IntroScreenComponent.h"
 
 namespace paasphoos
 {
@@ -36,6 +37,7 @@ private:
     juce::Label subtitleLabel;
     juce::Label modeBadgeLabel;
     juce::Label cpuBadgeLabel;
+    juce::TextButton profileButton;
 
     // Navigation Buttons
     juce::TextButton viewMixerBtn;
@@ -57,6 +59,9 @@ private:
     // Status Bar
     juce::Label statusBarLabel;
     juce::Label mmcssStatusLabel;
+
+    // Intro Animation & Profile Setup Overlay
+    IntroScreenComponent introScreen;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

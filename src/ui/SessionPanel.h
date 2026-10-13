@@ -20,6 +20,14 @@ public:
     void changeListenerCallback(juce::ChangeBroadcaster* source) override;
     void timerCallback() override;
 
+    void setMusicianProfile(const juce::String& name, const juce::String& role)
+    {
+        localMusicianName = name;
+        localInstrumentRole = role;
+    }
+    const juce::String& getMusicianName() const noexcept { return localMusicianName; }
+    const juce::String& getInstrumentRole() const noexcept { return localInstrumentRole; }
+
 private:
     void refreshDiscoveredList();
     void updateNetworkStatsDisplay();
@@ -87,6 +95,9 @@ private:
 
     NetworkAdapterInfo adapterInfo;
     int copyFeedbackTimer{0};
+
+    juce::String localMusicianName{"Musician"};
+    juce::String localInstrumentRole{"Guitar 1"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SessionPanel)
 };

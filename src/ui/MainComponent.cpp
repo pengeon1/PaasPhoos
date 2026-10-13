@@ -50,6 +50,12 @@ MainComponent::MainComponent(AudioEngine& engine)
     cpuBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(cpuBadgeLabel);
 
+    profileButton.setButtonText("MUSICIAN: " + introScreen.getMusicianName() + " (" + introScreen.getInstrumentRole() + ")");
+    profileButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a24));
+    profileButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffffaa33));
+    profileButton.onClick = [this]() { introScreen.show(true); };
+    addAndMakeVisible(profileButton);
+
     // View Navigation Buttons
     viewMixerBtn.setButtonText("MIXER & TUNER");
     viewMixerBtn.onClick = [this]() { switchView(0); };
@@ -93,6 +99,22 @@ MainComponent::MainComponent(AudioEngine& engine)
     mmcssStatusLabel.setJustificationType(juce::Justification::centredRight);
     mmcssStatusLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
     addAndMakeVisible(mmcssStatusLabel);
+
+    // Setup Intro Screen Animation and Musician Name Entry
+    introScreen.onStudioEntered = [this](const juce::String& name, const juce::String& role)
+    {
+        sessionPanel.setMusicianProfile(name, role);
+        mixerPanel.setLocalMusicianName(name, role);
+        profileButton.setButtonText("MUSICIAN: " + name + " (" + role + ")");
+        statusBarLabel.setText("Active Musician: " + name + " (" + role + ") | Ready to Rehearse", juce::dontSendNotification);
+    };
+
+    // Apply initial profile
+    sessionPanel.setMusicianProfile(introScreen.getMusicianName(), introScreen.getInstrumentRole());
+    mixerPanel.setLocalMusicianName(introScreen.getMusicianName(), introScreen.getInstrumentRole());
+
+    addChildComponent(introScreen);
+    introScreen.show(false);
 
     setSize(1280, 840);
     startTimerHz(10); // 10 Hz refresh for status and CPU
@@ -203,9 +225,11 @@ void MainComponent::resized()
     logoLabel.setBounds(titleArea.removeFromTop(24));
     subtitleLabel.setBounds(titleArea);
 
-    cpuBadgeLabel.setBounds(headerArea.removeFromRight(120).reduced(0, 4));
-    headerArea.removeFromRight(8);
-    modeBadgeLabel.setBounds(headerArea.removeFromRight(200).reduced(0, 4));
+    cpuBadgeLabel.setBounds(headerArea.removeFromRight(110).reduced(0, 4));
+    headerArea.removeFromRight(6);
+    modeBadgeLabel.setBounds(headerArea.removeFromRight(190).reduced(0, 4));
+    headerArea.removeFromRight(6);
+    profileButton.setBounds(headerArea.removeFromRight(200).reduced(0, 4));
 
     area.reduce(10, 4);
 
@@ -247,6 +271,10 @@ void MainComponent::resized()
     {
         rehearsalToolsPanel.setBounds(area.reduced(2));
     }
+
+    // Intro Screen & Musician Profile setup covers window when active
+    introScreen.setBounds(getLocalBounds());
+    introScreen.toFront(true);
 }
 
 } // namespace paasphoos

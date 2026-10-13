@@ -89,6 +89,8 @@ target_sources(PaasPhoos PRIVATE
     src/ui/DrumPanel.cpp
     src/ui/RehearsalToolsPanel.h
     src/ui/RehearsalToolsPanel.cpp
+    src/ui/IntroScreenComponent.h
+    src/ui/IntroScreenComponent.cpp
     src/common/LookAndFeelCustom.h
 )
 
