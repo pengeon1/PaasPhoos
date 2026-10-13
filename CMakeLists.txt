@@ -6,15 +6,28 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Support Steinberg ASIO SDK if present, otherwise WASAPI fallback
+# Support Steinberg ASIO SDK (use local external/asiosdk or FetchContent fallback on Windows)
 set(ASIOSDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/asiosdk" CACHE PATH "Path to Steinberg ASIO SDK")
+if(WIN32 AND NOT (EXISTS "${ASIOSDK_DIR}/iasiodrv.h" OR EXISTS "${ASIOSDK_DIR}/common/iasiodrv.h"))
+    include(FetchContent)
+    FetchContent_Declare(
+        asiosdk
+        GIT_REPOSITORY https://github.com/audiosdk/asio.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+    )
+    FetchContent_MakeAvailable(asiosdk)
+    set(ASIOSDK_DIR "${asiosdk_SOURCE_DIR}" CACHE PATH "Path to Steinberg ASIO SDK" FORCE)
+endif()
+
 if(EXISTS "${ASIOSDK_DIR}/iasiodrv.h" OR EXISTS "${ASIOSDK_DIR}/common/iasiodrv.h")
     message(STATUS "Found Steinberg ASIO SDK at: ${ASIOSDK_DIR}")
     set(PAASPHOOS_ENABLE_ASIO ON)
 else()
-    message(STATUS "Steinberg ASIO SDK not present in external/asiosdk. Building with Windows WASAPI engine.")
+    message(STATUS "Steinberg ASIO SDK not present. Building with Windows WASAPI engine.")
     set(PAASPHOOS_ENABLE_ASIO OFF)
 endif()
+
 
 # Include JUCE 8
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/external/juce/CMakeLists.txt")
@@ -247,6 +260,44 @@ target_link_libraries(ExportIntroFrames PRIVATE
 
 if(WIN32)
     target_link_libraries(ExportIntroFrames PRIVATE avrt winmm iphlpapi ws2_32)
+endif()
+
+# Audio Devices Diagnostic Tool
+add_executable(CheckAudioDevices
+    tools/CheckAudioDevices.cpp
+)
+
+target_include_directories(CheckAudioDevices PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(PAASPHOOS_ENABLE_ASIO)
+    target_compile_definitions(CheckAudioDevices PRIVATE JUCE_ASIO=1)
+    if(EXISTS "${ASIOSDK_DIR}/common")
+        target_include_directories(CheckAudioDevices PRIVATE "${ASIOSDK_DIR}/common")
+    else()
+        target_include_directories(CheckAudioDevices PRIVATE "${ASIOSDK_DIR}")
+    endif()
+endif()
+
+target_compile_definitions(CheckAudioDevices PRIVATE
+    JUCE_WASAPI=1
+    JUCE_DIRECTSOUND=1
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    NOMINMAX=1
+    WIN32_LEAN_AND_MEAN=1
+)
+
+target_link_libraries(CheckAudioDevices PRIVATE
+    juce::juce_core
+    juce::juce_events
+    juce::juce_audio_basics
+    juce::juce_audio_devices
+)
+
+if(WIN32)
+    target_link_libraries(CheckAudioDevices PRIVATE avrt winmm iphlpapi ws2_32)
 endif()
 
 

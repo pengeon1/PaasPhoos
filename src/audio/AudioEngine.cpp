@@ -40,15 +40,39 @@ void AudioEngine::enableWindowsMmcss()
 #endif
 }
 
+static juce::File getAudioSettingsFile()
+{
+    return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+        .getChildFile("PaasPhoos")
+        .getChildFile("audio_settings.xml");
+}
+
 bool AudioEngine::initialize()
 {
     enableWindowsMmcss();
 
-    // Initialize audio device manager with 2 inputs and 2 outputs
-    juce::String error = deviceManager.initialiseWithDefaultDevices(2, 2);
+    auto settingsFile = getAudioSettingsFile();
+    std::unique_ptr<juce::XmlElement> savedXml;
+    if (settingsFile.existsAsFile())
+    {
+        savedXml = juce::XmlDocument::parse(settingsFile);
+    }
+
+    juce::String error;
+    if (savedXml != nullptr)
+    {
+        error = deviceManager.initialise(2, 2, savedXml.get(), true);
+    }
+    else
+    {
+        error = deviceManager.initialiseWithDefaultDevices(2, 2);
+    }
+
     if (error.isNotEmpty())
     {
         DBG("Audio device initialization error: " + error);
+        // Fallback to default devices if saved config fails
+        deviceManager.initialiseWithDefaultDevices(2, 2);
     }
 
     deviceManager.addAudioCallback(this);
@@ -56,12 +80,24 @@ bool AudioEngine::initialize()
     return true;
 }
 
+void AudioEngine::saveAudioSettings()
+{
+    if (auto xml = deviceManager.createStateXml())
+    {
+        auto settingsFile = getAudioSettingsFile();
+        settingsFile.getParentDirectory().createDirectory();
+        xml->writeTo(settingsFile);
+    }
+}
+
 void AudioEngine::shutdown()
 {
+    saveAudioSettings();
     sessionRecorder.stopRecording();
     deviceManager.removeAudioCallback(this);
     deviceManager.closeAudioDevice();
 }
+
 
 juce::String AudioEngine::getCurrentDeviceName() const
 {
@@ -133,8 +169,10 @@ void AudioEngine::setAudioDevice(const juce::String& deviceTypeName,
     setup.useDefaultOutputChannels = true;
 
     deviceManager.setAudioDeviceSetup(setup, true);
+    saveAudioSettings();
     sendChangeMessage();
 }
+
 
 void AudioEngine::audioDeviceAboutToStart(juce::AudioIODevice* device)
 {

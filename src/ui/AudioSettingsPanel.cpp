@@ -28,8 +28,10 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
             audioEngine.getDeviceManager().setCurrentAudioDeviceType(selectedType, true);
             updateDeviceLists();
             updateLatencyBadge();
+            audioEngine.saveAudioSettings();
         }
     };
+
     addAndMakeVisible(driverTypeCombo);
 
     // Input Device

@@ -47,6 +47,7 @@ public:
     void shutdown();
 
     juce::AudioDeviceManager& getDeviceManager() { return deviceManager; }
+    void saveAudioSettings();
 
     // Audio device settings helpers
     juce::String getCurrentDeviceName() const;
