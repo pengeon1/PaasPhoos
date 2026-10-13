@@ -2,6 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "../audio/AudioEngine.h"
+#include "../common/ThemeConfig.h"
 #include <array>
 
 namespace paasphoos
@@ -22,6 +23,7 @@ public:
 
     void setMasterVolumeControl(AudioEngine* engine);
     void setChannelName(const juce::String& newName, const juce::String& newSub = {});
+    void setChannelColor(juce::Colour color);
     void setJitterBadge(const juce::String& text, juce::Colour color);
     void setActive(bool active);
 
@@ -31,6 +33,7 @@ private:
     ChannelSettings& channelSettings;
     bool isMaster;
     bool isActiveState{true};
+    juce::Colour customAccentColor;
     AudioEngine* audioEngine = nullptr;
 
     juce::Label nameLabel;
@@ -60,21 +63,27 @@ public:
     void resized() override;
     void timerCallback() override;
 
-    void setLocalMusicianName(const juce::String& name, const juce::String& role)
+    void triggerMeterSweep();
+
+    void setLocalMusicianName(const juce::String& name, const juce::String& role, juce::Colour roleColor = juce::Colour(ThemeConfig::kAccentVioletHex))
     {
         if (channel1Strip != nullptr)
+        {
             channel1Strip->setChannelName("YOU: " + name.toUpperCase(), role);
+            channel1Strip->setChannelColor(roleColor);
+        }
     }
 
 private:
     AudioEngine& audioEngine;
-
     juce::Label titleLabel;
 
     std::unique_ptr<ChannelStripComponent> channel1Strip;
     std::unique_ptr<ChannelStripComponent> channel2Strip;
     std::array<std::unique_ptr<ChannelStripComponent>, AudioEngine::MAX_REMOTE_STRIPS> remoteStrips;
     std::unique_ptr<ChannelStripComponent> masterStrip;
+
+    float meterSweepProgress{0.0f};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MixerPanel)
 };

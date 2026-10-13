@@ -2,6 +2,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "../audio/AudioEngine.h"
+#include "../common/ThemeConfig.h"
+#include "../common/TweenEngine.h"
 #include "AudioSettingsPanel.h"
 #include "SessionPanel.h"
 #include "MixerPanel.h"
@@ -19,17 +21,21 @@ class MainComponent : public juce::Component,
                       public juce::Timer
 {
 public:
-    explicit MainComponent(AudioEngine& engine);
+    explicit MainComponent(AudioEngine& engine, bool introPreviewMode = false);
     ~MainComponent() override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
     void timerCallback() override;
 
+    void triggerPanelEntranceAnimation();
+
 private:
     void switchView(int viewIndex);
+    void updateProfileBadge();
 
     AudioEngine& audioEngine;
+    bool isIntroPreviewMode{false};
 
     // Header Components
     juce::Image logoImage;
@@ -38,6 +44,7 @@ private:
     juce::Label modeBadgeLabel;
     juce::Label cpuBadgeLabel;
     juce::TextButton profileButton;
+    juce::Colour currentMusicianRoleColor;
 
     // Navigation Buttons
     juce::TextButton viewMixerBtn;
@@ -59,6 +66,10 @@ private:
     // Status Bar
     juce::Label statusBarLabel;
     juce::Label mmcssStatusLabel;
+
+    // Staggered Entrance Animation State
+    bool isEntranceAnimating{false};
+    float entranceTimeSeconds{0.0f};
 
     // Intro Animation & Profile Setup Overlay
     IntroScreenComponent introScreen;

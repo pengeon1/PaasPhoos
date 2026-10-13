@@ -1,42 +1,55 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "ThemeConfig.h"
 
 namespace paasphoos
 {
 
+/**
+ * State-of-the-Art Studio Dark LookAndFeel for PaasPhoos.
+ * Consistent global design system:
+ * Base: #0B0D12, Surface: #12151C, Elevated: #1A1E28
+ * Accents: Violet #7C5CFF -> Electric Blue #3DA5FF -> Cyan #38E1C6
+ */
 class DarkStudioLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
     DarkStudioLookAndFeel()
     {
-        // Obsidian Black & Flame Orange Color Scheme
-        setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(0xff090a0d));
-        setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
-        setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffff6600)); // Vibrant flame orange
-        setColour(juce::TextButton::textColourOffId, juce::Colour(0xfff3f4f6));
+        // Window & Backgrounds
+        setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(ThemeConfig::kBaseBackgroundHex));
+
+        // Buttons
+        setColour(juce::TextButton::buttonColourId, juce::Colour(ThemeConfig::kSurfaceElevatedHex));
+        setColour(juce::TextButton::buttonOnColourId, juce::Colour(ThemeConfig::kAccentVioletHex));
+        setColour(juce::TextButton::textColourOffId, juce::Colour(ThemeConfig::kTextPrimaryHex));
         setColour(juce::TextButton::textColourOnId, juce::Colour(0xffffffff));
 
-        setColour(juce::Slider::thumbColourId, juce::Colour(0xffff7700));
-        setColour(juce::Slider::trackColourId, juce::Colour(0xff22242e));
-        setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(0xffff6600));
-        setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(0xff14151a));
+        // Sliders
+        setColour(juce::Slider::thumbColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+        setColour(juce::Slider::trackColourId, juce::Colour(ThemeConfig::kSurfaceHex));
+        setColour(juce::Slider::rotarySliderFillColourId, juce::Colour(ThemeConfig::kAccentVioletHex));
+        setColour(juce::Slider::rotarySliderOutlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
 
-        setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xff14151b));
-        setColour(juce::ComboBox::textColourId, juce::Colour(0xfff8fafc));
-        setColour(juce::ComboBox::outlineColourId, juce::Colour(0xff2b2d38));
-        setColour(juce::ComboBox::arrowColourId, juce::Colour(0xffff7700));
+        // Combo Boxes
+        setColour(juce::ComboBox::backgroundColourId, juce::Colour(ThemeConfig::kSurfaceHex));
+        setColour(juce::ComboBox::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+        setColour(juce::ComboBox::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+        setColour(juce::ComboBox::arrowColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
 
-        setColour(juce::Label::textColourId, juce::Colour(0xffd1d5db));
-        setColour(juce::PopupMenu::backgroundColourId, juce::Colour(0xff111217));
-        setColour(juce::PopupMenu::textColourId, juce::Colour(0xfff3f4f6));
-        setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(0xffff6600));
+        // Labels & Menus
+        setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
+        setColour(juce::PopupMenu::backgroundColourId, juce::Colour(ThemeConfig::kSurfaceHex));
+        setColour(juce::PopupMenu::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+        setColour(juce::PopupMenu::highlightedBackgroundColourId, juce::Colour(ThemeConfig::kAccentVioletHex));
         setColour(juce::PopupMenu::highlightedTextColourId, juce::Colour(0xffffffff));
 
-        setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e0f14));
-        setColour(juce::TextEditor::textColourId, juce::Colour(0xffffffff));
-        setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff2a2c38));
-        setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(0xffff7700));
+        // Text Editors
+        setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+        setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+        setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+        setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
     }
 
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
@@ -46,42 +59,46 @@ public:
         auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(4.0f);
         auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
         auto toAngle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
-        auto lineW = juce::jmin(6.0f, radius * 0.35f);
+        auto lineW = juce::jmin(5.0f, radius * 0.30f);
         auto arcRadius = radius - lineW * 0.5f;
         auto center = bounds.getCentre();
 
-        // Background track arc (charcoal obsidian)
+        // Background track arc
         juce::Path backgroundArc;
         backgroundArc.addCentredArc(center.x, center.y, arcRadius, arcRadius,
                                     0.0f, rotaryStartAngle, rotaryEndAngle, true);
-        g.setColour(juce::Colour(0xff1e2029));
+        g.setColour(juce::Colour(ThemeConfig::kBorderSubtleHex));
         g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
-        // Active value arc (fiery orange gradient)
+        // Active value arc with smooth gradient
         if (slider.isEnabled())
         {
             juce::Path valueArc;
             valueArc.addCentredArc(center.x, center.y, arcRadius, arcRadius,
                                    0.0f, rotaryStartAngle, toAngle, true);
-            g.setColour(juce::Colour(0xffff7700));
+
+            juce::ColourGradient grad(juce::Colour(ThemeConfig::kAccentVioletHex), center.x - arcRadius, center.y,
+                                      juce::Colour(ThemeConfig::kAccentBlueHex), center.x + arcRadius, center.y, false);
+            g.setGradientFill(grad);
             g.strokePath(valueArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
 
-        // Inner knob dial (metallic brushed obsidian)
+        // Inner knob dial
         auto innerRadius = radius - lineW * 1.5f;
         if (innerRadius > 4.0f)
         {
-            g.setGradientFill(juce::ColourGradient(juce::Colour(0xff282a35), center.x, center.y - innerRadius,
-                                                   juce::Colour(0xff121319), center.x, center.y + innerRadius, false));
+            juce::ColourGradient dialGrad(juce::Colour(ThemeConfig::kSurfaceElevatedHex), center.x, center.y - innerRadius,
+                                         juce::Colour(ThemeConfig::kSurfaceHex), center.x, center.y + innerRadius, false);
+            g.setGradientFill(dialGrad);
             g.fillEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f);
 
-            g.setColour(juce::Colour(0xff373947));
+            g.setColour(juce::Colour(ThemeConfig::kBorderHighlightHex));
             g.drawEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f, 1.0f);
 
-            // Pointer tick (neon amber glow)
+            // Pointer tick
             juce::Path dialTick;
-            dialTick.addRectangle(-1.5f, -innerRadius + 2.0f, 3.0f, innerRadius * 0.5f);
-            g.setColour(juce::Colour(0xffff9933));
+            dialTick.addRectangle(-1.2f, -innerRadius + 2.0f, 2.4f, innerRadius * 0.45f);
+            g.setColour(juce::Colour(ThemeConfig::kAccentCyanHex));
             g.fillPath(dialTick, juce::AffineTransform::rotation(toAngle).translated(center.x, center.y));
         }
     }
@@ -92,34 +109,37 @@ public:
     {
         if (style == juce::Slider::LinearVertical)
         {
-            auto trackWidth = 6.0f;
+            auto trackWidth = 5.0f;
             auto trackX = x + (width - trackWidth) * 0.5f;
             auto trackBounds = juce::Rectangle<float>(trackX, (float)y + 6.0f, trackWidth, (float)height - 12.0f);
 
-            // Background slot (dark obsidian)
-            g.setColour(juce::Colour(0xff181922));
-            g.fillRoundedRectangle(trackBounds, 3.0f);
+            // Background slot
+            g.setColour(juce::Colour(ThemeConfig::kSurfaceHex));
+            g.fillRoundedRectangle(trackBounds, 2.5f);
 
-            // Filled active track from bottom to slider thumb (glowing flame orange)
+            // Filled active track
             auto activeBounds = juce::Rectangle<float>(trackX, sliderPos, trackWidth, (float)y + height - 6.0f - sliderPos);
-            g.setColour(juce::Colour(0xffff6600).withAlpha(0.8f));
-            g.fillRoundedRectangle(activeBounds, 3.0f);
+            juce::ColourGradient activeGrad(juce::Colour(ThemeConfig::kAccentBlueHex), trackX, (float)y + height,
+                                           juce::Colour(ThemeConfig::kAccentVioletHex), trackX, sliderPos, false);
+            g.setGradientFill(activeGrad);
+            g.fillRoundedRectangle(activeBounds, 2.5f);
 
-            // Fader handle thumb (metallic carbon block)
+            // Fader thumb
             auto thumbHeight = 16.0f;
-            auto thumbWidth = juce::jmin((float)width - 4.0f, 26.0f);
+            auto thumbWidth = juce::jmin((float)width - 4.0f, 24.0f);
             auto thumbX = x + (width - thumbWidth) * 0.5f;
             auto thumbY = sliderPos - thumbHeight * 0.5f;
 
-            g.setGradientFill(juce::ColourGradient(juce::Colour(0xff333644), thumbX, thumbY,
-                                                   juce::Colour(0xff15161e), thumbX, thumbY + thumbHeight, false));
+            juce::ColourGradient thumbGrad(juce::Colour(ThemeConfig::kSurfaceElevatedHex), thumbX, thumbY,
+                                          juce::Colour(ThemeConfig::kSurfaceHex), thumbX, thumbY + thumbHeight, false);
+            g.setGradientFill(thumbGrad);
             g.fillRoundedRectangle(thumbX, thumbY, thumbWidth, thumbHeight, 3.0f);
 
-            // Thumb center accent line (electric orange notch)
-            g.setColour(juce::Colour(0xffff7700));
+            // Thumb center accent notch
+            g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex));
             g.fillRect(thumbX + 4.0f, sliderPos - 1.0f, thumbWidth - 8.0f, 2.0f);
 
-            g.setColour(juce::Colour(0xff4a4d60));
+            g.setColour(juce::Colour(ThemeConfig::kBorderHighlightHex));
             g.drawRoundedRectangle(thumbX, thumbY, thumbWidth, thumbHeight, 3.0f, 1.0f);
         }
         else
@@ -140,13 +160,13 @@ public:
         else if (isButtonDown)
             baseColor = baseColor.darker(0.2f);
         else if (isMouseOverButton)
-            baseColor = baseColor.brighter(0.15f);
+            baseColor = baseColor.brighter(0.12f);
 
         g.setColour(baseColor);
-        g.fillRoundedRectangle(bounds, 4.0f);
+        g.fillRoundedRectangle(bounds, 6.0f);
 
-        g.setColour(button.getToggleState() ? juce::Colour(0xffffaa33) : juce::Colour(0xff2d2f3d));
-        g.drawRoundedRectangle(bounds, 4.0f, 1.0f);
+        g.setColour(button.getToggleState() ? juce::Colour(ThemeConfig::kAccentCyanHex) : juce::Colour(ThemeConfig::kBorderSubtleHex));
+        g.drawRoundedRectangle(bounds, 6.0f, 1.0f);
     }
 };
 

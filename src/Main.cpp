@@ -2,6 +2,7 @@
 #include "audio/AudioEngine.h"
 #include "ui/MainComponent.h"
 #include "common/LookAndFeelCustom.h"
+#include "common/ThemeConfig.h"
 
 namespace paasphoos
 {
@@ -9,18 +10,26 @@ namespace paasphoos
 class MainWindow : public juce::DocumentWindow
 {
 public:
-    MainWindow(juce::String name, AudioEngine& engine)
+    MainWindow(juce::String name, AudioEngine& engine, bool introPreviewMode = false)
         : DocumentWindow(name,
-                         juce::Colour(0xff121316),
+                         juce::Colour(ThemeConfig::kBaseBackgroundHex),
                          DocumentWindow::allButtons),
           audioEngine(engine)
     {
         setUsingNativeTitleBar(true);
-        setContentOwned(new MainComponent(audioEngine), true);
+        setContentOwned(new MainComponent(audioEngine, introPreviewMode), true);
 
         setResizable(true, true);
         setResizeLimits(800, 560, 3840, 2160);
-        setFullScreen(true);
+
+        if (introPreviewMode)
+        {
+            centreWithSize(1366, 768);
+        }
+        else
+        {
+            setFullScreen(true);
+        }
 
         setVisible(true);
     }
@@ -42,21 +51,28 @@ public:
     PaasPhoosApplication() {}
 
     const juce::String getApplicationName() override       { return "PaasPhoos"; }
-    const juce::String getApplicationVersion() override    { return "0.1.0-M1"; }
+    const juce::String getApplicationVersion() override    { return "0.2.0"; }
     bool moreThanOneInstanceAllowed() override             { return true; }
 
-    void initialise(const juce::String& /*commandLine*/) override
+    void initialise(const juce::String& commandLine) override
     {
+        bool isPreview = commandLine.contains("--intro-preview");
+
         // Set custom studio dark look and feel
         lookAndFeel = std::make_unique<DarkStudioLookAndFeel>();
         juce::LookAndFeel::setDefaultLookAndFeel(lookAndFeel.get());
 
-        // Initialize Audio Engine
+        // Initialize Audio Engine in background (never blocks intro)
         audioEngine = std::make_unique<AudioEngine>();
         audioEngine->initialize();
 
         // Create main application window
-        mainWindow = std::make_unique<MainWindow>(getApplicationName() + " - Remote Rehearsal Console", *audioEngine);
+        mainWindow = std::make_unique<MainWindow>(
+            isPreview ? (getApplicationName() + " [Intro Preview Mode]")
+                      : (getApplicationName() + " - Remote Rehearsal Console"),
+            *audioEngine,
+            isPreview
+        );
     }
 
     void shutdown() override

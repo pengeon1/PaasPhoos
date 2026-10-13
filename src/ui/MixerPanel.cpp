@@ -1,4 +1,5 @@
 #include "MixerPanel.h"
+#include <cmath>
 
 namespace paasphoos
 {
@@ -12,16 +13,18 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
       channelSettings(settings),
       isMaster(isMasterSection)
 {
+    customAccentColor = isMaster ? juce::Colour(ThemeConfig::kAccentCyanHex) : juce::Colour(ThemeConfig::kAccentBlueHex);
+
     nameLabel.setText(name, juce::dontSendNotification);
     nameLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
     nameLabel.setJustificationType(juce::Justification::centred);
-    nameLabel.setColour(juce::Label::textColourId, isMaster ? juce::Colour(0xffff7700) : juce::Colour(0xffe2e8f0));
+    nameLabel.setColour(juce::Label::textColourId, customAccentColor);
     addAndMakeVisible(nameLabel);
 
     subLabel.setText(sub, juce::dontSendNotification);
     subLabel.setFont(juce::FontOptions(9.5f));
     subLabel.setJustificationType(juce::Justification::centred);
-    subLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
+    subLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(subLabel);
 
     if (!isMaster)
@@ -29,8 +32,8 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
         jitterBadgeLabel.setText("", juce::dontSendNotification);
         jitterBadgeLabel.setFont(juce::FontOptions(9.0f, juce::Font::bold));
         jitterBadgeLabel.setJustificationType(juce::Justification::centred);
-        jitterBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff0f172a));
-        jitterBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff64748b));
+        jitterBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(ThemeConfig::kSurfaceHex));
+        jitterBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
         addAndMakeVisible(jitterBadgeLabel);
     }
 
@@ -87,7 +90,7 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
         // Solo Button
         soloButton.setButtonText("S");
         soloButton.setClickingTogglesState(true);
-        soloButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xfff59e0b));
+        soloButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(ThemeConfig::kAccentAmberHex));
         soloButton.onClick = [this]()
         {
             channelSettings.solo.store(soloButton.getToggleState(), std::memory_order_relaxed);
@@ -109,6 +112,13 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
 void ChannelStripComponent::setMasterVolumeControl(AudioEngine* engine)
 {
     audioEngine = engine;
+}
+
+void ChannelStripComponent::setChannelColor(juce::Colour color)
+{
+    customAccentColor = color;
+    nameLabel.setColour(juce::Label::textColourId, customAccentColor);
+    repaint();
 }
 
 void ChannelStripComponent::setChannelName(const juce::String& newName, const juce::String& newSub)
@@ -137,9 +147,8 @@ void ChannelStripComponent::setActive(bool active)
     {
         isActiveState = active;
         nameLabel.setColour(juce::Label::textColourId,
-                            active ? (isMaster ? juce::Colour(0xffff7700) : juce::Colour(0xfff8fafc))
-                                   : juce::Colour(0xff64748b));
-        subLabel.setColour(juce::Label::textColourId, active ? juce::Colour(0xffffaa33) : juce::Colour(0xff475569));
+                            active ? customAccentColor : juce::Colour(ThemeConfig::kTextDimHex));
+        subLabel.setColour(juce::Label::textColourId, active ? juce::Colour(ThemeConfig::kTextMutedHex) : juce::Colour(ThemeConfig::kTextDimHex));
         gainFader.setEnabled(active);
         panKnob.setEnabled(active);
         muteButton.setEnabled(active);
@@ -158,9 +167,17 @@ void ChannelStripComponent::updateMeters(float peakL, float peakR, bool clipped)
 
 void ChannelStripComponent::paint(juce::Graphics& g)
 {
-    g.fillAll(isActiveState ? juce::Colour(0xff14151b) : juce::Colour(0xff090a0d));
-    g.setColour(isActiveState ? juce::Colour(0xff2a2d36) : juce::Colour(0xff1a1b22));
+    // Background
+    g.fillAll(isActiveState ? juce::Colour(ThemeConfig::kSurfaceHex) : juce::Colour(ThemeConfig::kBaseBackgroundHex));
+    g.setColour(isActiveState ? juce::Colour(ThemeConfig::kBorderSubtleHex) : juce::Colour(0xff151821));
     g.drawRect(getLocalBounds(), 1);
+
+    // Subtle top accent line
+    if (isActiveState)
+    {
+        g.setColour(customAccentColor.withAlpha(0.7f));
+        g.fillRect(1, 1, getWidth() - 2, 2);
+    }
 
     // Level Meter
     auto faderBounds = gainFader.getBounds();
@@ -177,9 +194,9 @@ void ChannelStripComponent::paint(juce::Graphics& g)
         float filledHeight = juce::jlimit(0.0f, 1.0f, peak) * meterH;
         float fillY = (meterY + meterH) - filledHeight;
 
-        juce::ColourGradient grad(juce::Colour(0xffffaa33), (float)x, (float)(meterY + meterH),
-                                  juce::Colour(0xffff2200), (float)x, (float)meterY, false);
-        grad.addColour(0.65, juce::Colour(0xffff6600));
+        juce::ColourGradient grad(juce::Colour(ThemeConfig::kAccentBlueHex), (float)x, (float)(meterY + meterH),
+                                  juce::Colour(ThemeConfig::kRoleVocalsHex), (float)x, (float)meterY, false);
+        grad.addColour(0.65, juce::Colour(ThemeConfig::kAccentCyanHex));
         g.setGradientFill(grad);
         g.fillRoundedRectangle((float)x, fillY, (float)w, filledHeight, 1.5f);
     };
@@ -196,7 +213,7 @@ void ChannelStripComponent::paint(juce::Graphics& g)
 
     // Clip LED
     int clipY = meterY - 10;
-    g.setColour(isClipped ? juce::Colour(0xffef4444) : juce::Colour(0xff351010));
+    g.setColour(isClipped ? juce::Colour(ThemeConfig::kRoleVocalsHex) : juce::Colour(0xff221118));
     g.fillRoundedRectangle((float)meterX, (float)clipY, (float)meterW, 6.0f, 1.5f);
 }
 
@@ -237,7 +254,7 @@ MixerPanel::MixerPanel(AudioEngine& engine)
 {
     titleLabel.setText("BAND REHEARSAL MIXER CONSOLE (6 PARTICIPANTS)", juce::dontSendNotification);
     titleLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
-    titleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
+    titleLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(titleLabel);
 
     channel1Strip = std::make_unique<ChannelStripComponent>("YOU: CH1", audioEngine.getChannel1(), false, "Guitar / Inst");
@@ -270,15 +287,29 @@ MixerPanel::~MixerPanel()
     stopTimer();
 }
 
+void MixerPanel::triggerMeterSweep()
+{
+    meterSweepProgress = 1.0f;
+}
+
 void MixerPanel::timerCallback()
 {
+    float sweepBoost = 0.0f;
+    if (meterSweepProgress > 0.0f)
+    {
+        sweepBoost = meterSweepProgress * 0.85f;
+        meterSweepProgress -= 0.045f;
+        if (meterSweepProgress < 0.0f)
+            meterSweepProgress = 0.0f;
+    }
+
     auto& ch1 = audioEngine.getChannel1();
-    channel1Strip->updateMeters(ch1.peakLevel.load(std::memory_order_relaxed), 0.0f,
-                                ch1.clipDetected.load(std::memory_order_relaxed));
+    float peak1 = std::max(ch1.peakLevel.load(std::memory_order_relaxed), sweepBoost);
+    channel1Strip->updateMeters(peak1, 0.0f, ch1.clipDetected.load(std::memory_order_relaxed));
 
     auto& ch2 = audioEngine.getChannel2();
-    channel2Strip->updateMeters(ch2.peakLevel.load(std::memory_order_relaxed), 0.0f,
-                                ch2.clipDetected.load(std::memory_order_relaxed));
+    float peak2 = std::max(ch2.peakLevel.load(std::memory_order_relaxed), sweepBoost * 0.9f);
+    channel2Strip->updateMeters(peak2, 0.0f, ch2.clipDetected.load(std::memory_order_relaxed));
 
     auto& transport = audioEngine.getLanTransport();
 
@@ -304,18 +335,19 @@ void MixerPanel::timerCallback()
         {
             remoteStrips[s]->setActive(false);
             remoteStrips[s]->setChannelName(juce::String::formatted("SLOT %d", s + 1), "OFFLINE");
-            remoteStrips[s]->setJitterBadge("-", juce::Colour(0xff64748b));
-            remoteStrips[s]->updateMeters(0.0f, 0.0f, false);
+            remoteStrips[s]->setJitterBadge("-", juce::Colour(ThemeConfig::kTextDimHex));
+            remoteStrips[s]->updateMeters(sweepBoost * 0.6f, 0.0f, false);
         }
     }
 
-    masterStrip->updateMeters(audioEngine.getMasterPeakLeft(), audioEngine.getMasterPeakRight(),
-                              audioEngine.getMasterClipped());
+    float mPeakL = std::max(audioEngine.getMasterPeakLeft(), sweepBoost);
+    float mPeakR = std::max(audioEngine.getMasterPeakRight(), sweepBoost);
+    masterStrip->updateMeters(mPeakL, mPeakR, audioEngine.getMasterClipped());
 }
 
 void MixerPanel::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colour(0xff090a0d));
+    g.fillAll(juce::Colour(ThemeConfig::kBaseBackgroundHex));
 }
 
 void MixerPanel::resized()
@@ -324,7 +356,6 @@ void MixerPanel::resized()
     titleLabel.setBounds(area.removeFromTop(20));
     area.removeFromTop(4);
 
-    // 8 total strips: Ch1, Ch2, 5 Remote Peers, Master
     int totalStrips = 2 + AudioEngine::MAX_REMOTE_STRIPS + 1; // 8
     int stripWidth = area.getWidth() / totalStrips;
 

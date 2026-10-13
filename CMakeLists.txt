@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PaasPhoos VERSION 0.1.0 LANGUAGES C CXX)
+project(PaasPhoos VERSION 0.2.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -33,7 +33,7 @@ endif()
 # Define GUI Application
 juce_add_gui_app(PaasPhoos
     PRODUCT_NAME "PaasPhoos"
-    VERSION "0.1.0"
+    VERSION "0.2.0"
     COMPANY_NAME "PaasPhoos"
 )
 
@@ -92,6 +92,8 @@ target_sources(PaasPhoos PRIVATE
     src/ui/IntroScreenComponent.h
     src/ui/IntroScreenComponent.cpp
     src/common/LookAndFeelCustom.h
+    src/common/ThemeConfig.h
+    src/common/TweenEngine.h
 )
 
 target_include_directories(PaasPhoos PRIVATE
@@ -199,4 +201,34 @@ endif()
 
 enable_testing()
 add_test(NAME PaasPhoosAudioTests COMMAND PaasPhoosTests)
+
+# Frame Capture Tool for Verification
+add_executable(ExportIntroFrames
+    tools/ExportIntroFrames.cpp
+    src/ui/IntroScreenComponent.cpp
+)
+
+target_include_directories(ExportIntroFrames PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_definitions(ExportIntroFrames PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0
+    NOMINMAX=1
+    WIN32_LEAN_AND_MEAN=1
+)
+
+target_link_libraries(ExportIntroFrames PRIVATE
+    juce::juce_core
+    juce::juce_events
+    juce::juce_graphics
+    juce::juce_data_structures
+    juce::juce_gui_basics
+)
+
+if(WIN32)
+    target_link_libraries(ExportIntroFrames PRIVATE avrt winmm iphlpapi ws2_32)
+endif()
+
 

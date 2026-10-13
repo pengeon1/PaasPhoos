@@ -7,7 +7,7 @@ if (-not $projectRoot) { $projectRoot = Get-Location }
 $buildArtefacts = Join-Path $projectRoot "build\PaasPhoos_artefacts\Release"
 $buildBin = Join-Path $projectRoot "build\Release"
 $distDir = Join-Path $projectRoot "dist"
-$packageDir = Join-Path $distDir "PaasPhoos-v0.1.0-Windows-x64"
+$packageDir = Join-Path $distDir "PaasPhoos-v0.2.0-Windows-x64"
 
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host " Packaging PaasPhoos Portable Release Bundle" -ForegroundColor Cyan
@@ -64,7 +64,7 @@ start "" "%~dp0PaasPhoos.exe"
 Set-Content -Path (Join-Path $packageDir "Start-PaasPhoos.bat") -Value $quickStartContent
 
 # 5. Compress to ZIP archive
-$zipOutput = Join-Path $distDir "PaasPhoos-v0.1.0-Windows-x64.zip"
+$zipOutput = Join-Path $distDir "PaasPhoos-v0.2.0-Windows-x64.zip"
 if (Test-Path $zipOutput) {
     Remove-Item -Force $zipOutput
 }
