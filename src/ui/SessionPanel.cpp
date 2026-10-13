@@ -148,7 +148,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         if (currentActiveJamCode.isNotEmpty())
         {
             juce::SystemClipboard::copyTextToClipboard(currentActiveJamCode);
-            copyCodeButton.setButtonText("COPIED! \xE2\x9C\x93");
+            copyCodeButton.setButtonText("COPIED!");
             copyFeedbackTimer = 20; // 2 seconds at 10Hz
         }
     };
