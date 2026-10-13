@@ -4,6 +4,7 @@
 #include "../audio/AudioEngine.h"
 #include "../common/ThemeConfig.h"
 #include "../common/TweenEngine.h"
+#include "../common/Typography.h"
 #include "AudioSettingsPanel.h"
 #include "SessionPanel.h"
 #include "MixerPanel.h"
@@ -29,9 +30,10 @@ public:
     void timerCallback() override;
 
     void triggerPanelEntranceAnimation();
+    void switchView(int viewIndex);
+    void exportScreenshots(const juce::File& outputDir);
 
 private:
-    void switchView(int viewIndex);
     void updateProfileBadge();
 
     AudioEngine& audioEngine;
@@ -39,7 +41,7 @@ private:
 
     // Header Components
     juce::Image logoImage;
-    juce::Label logoLabel;
+    PaasPhoosWordmarkComponent logoWordmark{22.0f};
     juce::Label subtitleLabel;
     juce::Label modeBadgeLabel;
     juce::Label cpuBadgeLabel;

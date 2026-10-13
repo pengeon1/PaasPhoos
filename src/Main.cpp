@@ -17,6 +17,14 @@ public:
           audioEngine(engine)
     {
         setUsingNativeTitleBar(true);
+
+        // Set application window & taskbar thumbnail icon
+        auto logo = Typography::getLogoImage();
+        if (logo.isValid())
+        {
+            setIcon(logo);
+        }
+
         setContentOwned(new MainComponent(audioEngine, introPreviewMode), true);
 
         setResizable(true, true);
@@ -51,12 +59,13 @@ public:
     PaasPhoosApplication() {}
 
     const juce::String getApplicationName() override       { return "PaasPhoos"; }
-    const juce::String getApplicationVersion() override    { return "0.2.0"; }
+    const juce::String getApplicationVersion() override    { return "0.3.0"; }
     bool moreThanOneInstanceAllowed() override             { return true; }
 
     void initialise(const juce::String& commandLine) override
     {
         bool isPreview = commandLine.contains("--intro-preview");
+        bool isExportScreenshots = commandLine.contains("--export-screenshots");
 
         // Set custom studio dark look and feel
         lookAndFeel = std::make_unique<DarkStudioLookAndFeel>();
@@ -65,6 +74,16 @@ public:
         // Initialize Audio Engine in background (never blocks intro)
         audioEngine = std::make_unique<AudioEngine>();
         audioEngine->initialize();
+
+        if (isExportScreenshots)
+        {
+            auto comp = std::make_unique<MainComponent>(*audioEngine, false);
+            auto outDir = juce::File::getCurrentWorkingDirectory().getChildFile("artifacts/screenshots");
+            comp->exportScreenshots(outDir);
+            juce::Logger::writeToLog("All requested verification screenshots exported to: " + outDir.getFullPathName());
+            quit();
+            return;
+        }
 
         // Create main application window
         mainWindow = std::make_unique<MainWindow>(

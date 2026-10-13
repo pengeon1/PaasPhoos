@@ -74,6 +74,46 @@ public:
         }
     }
 
+    void populateMockBandChannels()
+    {
+        if (channel1Strip != nullptr)
+        {
+            channel1Strip->setChannelName("YOU: ROHAN", "VOCALS");
+            channel1Strip->setChannelColor(juce::Colour(ThemeConfig::kRoleVocalsHex));
+            channel1Strip->updateMeters(0.72f, 0.68f, false);
+        }
+        if (channel2Strip != nullptr)
+        {
+            channel2Strip->setChannelName("IN 2: GUITAR", "CLEAN / LEAD");
+            channel2Strip->setChannelColor(juce::Colour(ThemeConfig::kRoleGuitar1Hex));
+            channel2Strip->updateMeters(0.55f, 0.58f, false);
+        }
+        const char* peerNames[AudioEngine::MAX_REMOTE_STRIPS] = { "AARAV", "PRIYA", "KABIR", "VIKRAM", "DEV" };
+        const char* peerRoles[AudioEngine::MAX_REMOTE_STRIPS] = { "KEYS / SYNTH", "BASS GUITAR", "BACKING VOX", "DRUMS", "PERCUSSION" };
+        const juce::Colour peerCols[AudioEngine::MAX_REMOTE_STRIPS] = {
+            juce::Colour(ThemeConfig::kRoleKeysHex),
+            juce::Colour(ThemeConfig::kRoleGuitar2Hex),
+            juce::Colour(ThemeConfig::kRoleVocalsHex),
+            juce::Colour(ThemeConfig::kRoleDrumsHex),
+            juce::Colour(ThemeConfig::kRoleOtherHex)
+        };
+        for (int i = 0; i < AudioEngine::MAX_REMOTE_STRIPS; ++i)
+        {
+            if (remoteStrips[i] != nullptr)
+            {
+                remoteStrips[i]->setActive(true);
+                remoteStrips[i]->setChannelName(peerNames[i], peerRoles[i]);
+                remoteStrips[i]->setChannelColor(peerCols[i]);
+                remoteStrips[i]->setJitterBadge(juce::String(14 + i * 5) + " ms", juce::Colour(ThemeConfig::kRoleGuitar2Hex));
+                remoteStrips[i]->updateMeters(0.48f + i * 0.08f, 0.45f + i * 0.07f, false);
+            }
+        }
+        if (masterStrip != nullptr)
+        {
+            masterStrip->updateMeters(0.82f, 0.84f, false);
+        }
+    }
+
 private:
     AudioEngine& audioEngine;
     juce::Label titleLabel;

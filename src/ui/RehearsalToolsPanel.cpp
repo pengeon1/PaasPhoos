@@ -1,4 +1,5 @@
 #include "RehearsalToolsPanel.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -18,7 +19,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     chatTalkback.addChangeListener(this);
 
     headerLabel.setText("REHEARSAL TOOLS, SETLIST & CHAT (M7)", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(12.5f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(headerLabel);
 
@@ -47,13 +48,13 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     addAndMakeVisible(recordButton);
 
     recordTimerLabel.setText("00:00", juce::dontSendNotification);
-    recordTimerLabel.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    recordTimerLabel.setFont(Typography::numeric(12.0f));
     recordTimerLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff8fafc));
     addAndMakeVisible(recordTimerLabel);
 
     // 2. Setlist
     setlistLabel.setText("Setlist:", juce::dontSendNotification);
-    setlistLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    setlistLabel.setFont(Typography::labelCaps(11.0f));
     setlistLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(setlistLabel);
 
@@ -79,28 +80,32 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     };
     addAndMakeVisible(nextSongButton);
 
-    songInfoLabel.setFont(juce::FontOptions(11.0f));
+    songInfoLabel.setFont(Typography::numeric(11.0f));
     songInfoLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(songInfoLabel);
 
     songNotesEditor.setMultiLine(true);
     songNotesEditor.setReadOnly(true);
-    songNotesEditor.setFont(juce::FontOptions(10.5f));
+    songNotesEditor.setFont(Typography::caption(11.0f));
     songNotesEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff090a0d));
     addAndMakeVisible(songNotesEditor);
 
     // 3. Chat & PTT
     chatLabel.setText("Band Chat:", juce::dontSendNotification);
-    chatLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    chatLabel.setFont(Typography::labelCaps(11.0f));
     chatLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(chatLabel);
 
     chatLogBox.setMultiLine(true);
     chatLogBox.setReadOnly(true);
-    chatLogBox.setFont(juce::FontOptions(10.0f));
+    chatLogBox.setFont(Typography::caption());
     chatLogBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff090a0d));
     addAndMakeVisible(chatLogBox);
 
+    chatInputEditor.setMultiLine(false);
+    chatInputEditor.setReturnKeyStartsNewLine(false);
+    chatInputEditor.setIndents(10, 0);
+    chatInputEditor.setFont(Typography::body());
     chatInputEditor.setTextToShowWhenEmpty("Type message...", juce::Colour(0xff64748b));
     chatInputEditor.onReturnKey = [this]()
     {
@@ -132,7 +137,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     addAndMakeVisible(pttButton);
 
     // 4. Latency Budget & Sim
-    latencyBudgetLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    latencyBudgetLabel.setFont(Typography::numeric(11.0f));
     latencyBudgetLabel.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));
     addAndMakeVisible(latencyBudgetLabel);
 

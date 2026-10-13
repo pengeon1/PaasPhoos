@@ -1,5 +1,6 @@
 #include "SessionPanel.h"
 #include "../network/StunClient.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -12,12 +13,12 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // Header & Badges
     headerLabel.setText("BAND SESSION & NETWORK", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
     addAndMakeVisible(headerLabel);
 
     bandCountBadge.setText("BAND: 1/6", juce::dontSendNotification);
-    bandCountBadge.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    bandCountBadge.setFont(Typography::numeric(11.0f));
     bandCountBadge.setJustificationType(juce::Justification::centred);
     bandCountBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e130c));
     bandCountBadge.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
@@ -69,7 +70,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // ================= 1. JAM CODE HOST SECTION =================
     hostSectionLabel.setText("1. HOST A BAND REHEARSAL", juce::dontSendNotification);
-    hostSectionLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    hostSectionLabel.setFont(Typography::labelCaps(11.0f));
     hostSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
     addAndMakeVisible(hostSectionLabel);
 
@@ -135,7 +136,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(hostSessionButton);
 
     jamCodeDisplayBadge.setText("JAM CODE: (Click Start Hosting)", juce::dontSendNotification);
-    jamCodeDisplayBadge.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    jamCodeDisplayBadge.setFont(Typography::numericLarge(13.0f));
     jamCodeDisplayBadge.setJustificationType(juce::Justification::centred);
     jamCodeDisplayBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff16171f));
     jamCodeDisplayBadge.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
@@ -155,18 +156,21 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(copyCodeButton);
 
     hostStatusLabel.setText("Share the Jam Code with your band to connect.", juce::dontSendNotification);
-    hostStatusLabel.setFont(juce::FontOptions(10.5f));
+    hostStatusLabel.setFont(Typography::caption());
     hostStatusLabel.setColour(juce::Label::textColourId, juce::Colour(0xff9ca3af));
     addAndMakeVisible(hostStatusLabel);
 
     // ================= 2. JAM CODE JOIN SECTION =================
     joinSectionLabel.setText("2. JOIN WITH JAM CODE", juce::dontSendNotification);
-    joinSectionLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    joinSectionLabel.setFont(Typography::labelCaps(11.0f));
     joinSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
     addAndMakeVisible(joinSectionLabel);
 
+    jamCodeEditor.setMultiLine(false);
+    jamCodeEditor.setReturnKeyStartsNewLine(false);
+    jamCodeEditor.setIndents(12, 0);
     jamCodeEditor.setTextToShowWhenEmpty("Paste Band Jam Code (e.g. JAM-C0A8...)", juce::Colour(0xff6b7280));
-    jamCodeEditor.setFont(juce::FontOptions(12.0f, juce::Font::bold));
+    jamCodeEditor.setFont(Typography::numeric(12.0f));
     jamCodeEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff121318));
     jamCodeEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xffffaa33));
     jamCodeEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff2d2f3d));
@@ -199,14 +203,14 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // ================= 3. ADVANCED DIRECT IP CONTROLS =================
     manualIpLabel.setText("IP:", juce::dontSendNotification);
-    manualIpLabel.setFont(juce::FontOptions(11.0f));
+    manualIpLabel.setFont(Typography::caption(11.0f));
     addChildComponent(manualIpLabel);
 
     manualIpEditor.setText("127.0.0.1");
     addChildComponent(manualIpEditor);
 
     manualPortLabel.setText("Port:", juce::dontSendNotification);
-    manualPortLabel.setFont(juce::FontOptions(11.0f));
+    manualPortLabel.setFont(Typography::caption(11.0f));
     addChildComponent(manualPortLabel);
 
     manualPortEditor.setText("44045");
@@ -251,7 +255,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // ================= 4. STATUS & CONTROLS =================
     sessionStatusBadge.setText("STATUS: STANDALONE", juce::dontSendNotification);
-    sessionStatusBadge.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    sessionStatusBadge.setFont(Typography::labelCaps(11.0f));
     sessionStatusBadge.setJustificationType(juce::Justification::centred);
     sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff181920));
     sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xff9ca3af));
@@ -273,7 +277,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // Jitter buffer settings
     jitterBufferLabel.setText("Jitter Buffer:", juce::dontSendNotification);
-    jitterBufferLabel.setFont(juce::FontOptions(10.5f));
+    jitterBufferLabel.setFont(Typography::caption());
     jitterBufferLabel.setColour(juce::Label::textColourId, juce::Colour(0xff9ca3af));
     addAndMakeVisible(jitterBufferLabel);
 
@@ -287,29 +291,29 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     jitterBufferCombo.onChange = [this]() { applyJitterBufferSettings(); };
     addAndMakeVisible(jitterBufferCombo);
 
-    // Live Network Diagnostics HUD
+    // Live Network Diagnostics HUD (Tabular figures that never jitter)
     hudPingLabel.setText("Ping: -- ms", juce::dontSendNotification);
-    hudPingLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    hudPingLabel.setFont(Typography::numeric(11.0f));
     hudPingLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(hudPingLabel);
 
     hudJitterLabel.setText("Jitter: -- ms", juce::dontSendNotification);
-    hudJitterLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    hudJitterLabel.setFont(Typography::numeric(11.0f));
     hudJitterLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(hudJitterLabel);
 
     hudLossLabel.setText("Loss: 0.0%", juce::dontSendNotification);
-    hudLossLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    hudLossLabel.setFont(Typography::numeric(11.0f));
     hudLossLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(hudLossLabel);
 
     hudTotalLatencyLabel.setText("Total Ear-to-Ear: -- ms", juce::dontSendNotification);
-    hudTotalLatencyLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    hudTotalLatencyLabel.setFont(Typography::numeric(11.0f));
     hudTotalLatencyLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
     addAndMakeVisible(hudTotalLatencyLabel);
 
     healthStatusPill.setText("EXCELLENT", juce::dontSendNotification);
-    healthStatusPill.setFont(juce::FontOptions(9.5f, juce::Font::bold));
+    healthStatusPill.setFont(Typography::labelCaps(9.5f));
     healthStatusPill.setJustificationType(juce::Justification::centred);
     healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff14532d));
     healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff4ade80));
@@ -317,7 +321,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // Wi-Fi Warning
     adapterWarningLabel.setText("", juce::dontSendNotification);
-    adapterWarningLabel.setFont(juce::FontOptions(10.5f, juce::Font::bold));
+    adapterWarningLabel.setFont(Typography::labelCaps(10.5f));
     adapterWarningLabel.setJustificationType(juce::Justification::centred);
     adapterWarningLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff451a03));
     adapterWarningLabel.setColour(juce::Label::textColourId, juce::Colour(0xfffbbf24));

@@ -1,4 +1,5 @@
 #include "DrumPanel.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -10,7 +11,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
     setWantsKeyboardFocus(true);
 
     headerLabel.setText("DRUM MACHINE & SYNTH ENGINE (M5)", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(12.5f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(headerLabel);
 
@@ -80,7 +81,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     // Swing
     swingLabel.setText("Swing:", juce::dontSendNotification);
-    swingLabel.setFont(juce::FontOptions(11.0f));
+    swingLabel.setFont(Typography::labelCaps(11.0f));
     swingLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(swingLabel);
 
@@ -97,7 +98,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     // Latency Compensation
     latencyCompLabel.setText("Drum Offset:", juce::dontSendNotification);
-    latencyCompLabel.setFont(juce::FontOptions(11.0f));
+    latencyCompLabel.setFont(Typography::labelCaps(11.0f));
     latencyCompLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(latencyCompLabel);
 
@@ -146,7 +147,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
     for (int t = 0; t < DrumEngine::NUM_VOICES; ++t)
     {
         trackLabels[t].setText(shortNames[t], juce::dontSendNotification);
-        trackLabels[t].setFont(juce::FontOptions(10.0f, juce::Font::bold));
+        trackLabels[t].setFont(Typography::labelCaps(10.0f));
         trackLabels[t].setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
         addAndMakeVisible(trackLabels[t]);
 

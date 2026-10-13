@@ -1,4 +1,5 @@
 #include "MixerPanel.h"
+#include "../common/Typography.h"
 #include <cmath>
 
 namespace paasphoos
@@ -16,13 +17,13 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
     customAccentColor = isMaster ? juce::Colour(ThemeConfig::kAccentCyanHex) : juce::Colour(ThemeConfig::kAccentBlueHex);
 
     nameLabel.setText(name, juce::dontSendNotification);
-    nameLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    nameLabel.setFont(Typography::caption()); // 12px Inter
     nameLabel.setJustificationType(juce::Justification::centred);
     nameLabel.setColour(juce::Label::textColourId, customAccentColor);
     addAndMakeVisible(nameLabel);
 
     subLabel.setText(sub, juce::dontSendNotification);
-    subLabel.setFont(juce::FontOptions(9.5f));
+    subLabel.setFont(Typography::labelCaps(9.5f));
     subLabel.setJustificationType(juce::Justification::centred);
     subLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(subLabel);
@@ -30,7 +31,7 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
     if (!isMaster)
     {
         jitterBadgeLabel.setText("", juce::dontSendNotification);
-        jitterBadgeLabel.setFont(juce::FontOptions(9.0f, juce::Font::bold));
+        jitterBadgeLabel.setFont(Typography::numeric(9.5f));
         jitterBadgeLabel.setJustificationType(juce::Justification::centred);
         jitterBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(ThemeConfig::kSurfaceHex));
         jitterBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
@@ -253,7 +254,7 @@ MixerPanel::MixerPanel(AudioEngine& engine)
     : audioEngine(engine)
 {
     titleLabel.setText("BAND REHEARSAL MIXER CONSOLE (6 PARTICIPANTS)", juce::dontSendNotification);
-    titleLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    titleLabel.setFont(Typography::labelCaps(11.5f));
     titleLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(titleLabel);
 

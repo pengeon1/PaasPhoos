@@ -1,4 +1,5 @@
 #include "TunerComponent.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -7,7 +8,7 @@ TunerComponent::TunerComponent(AudioEngine& engine)
     : audioEngine(engine)
 {
     headerLabel.setText("CHROMATIC TUNER", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(headerLabel);
 
@@ -63,10 +64,10 @@ void TunerComponent::paint(juce::Graphics& g)
     if (!currentResult.isActive)
     {
         g.setColour(juce::Colour(0xff64748b));
-        g.setFont(juce::FontOptions(36.0f, juce::Font::bold));
+        g.setFont(Typography::display(36.0f));
         g.drawText("--", gaugeBounds.removeFromTop(60.0f), juce::Justification::centred);
 
-        g.setFont(juce::FontOptions(13.0f));
+        g.setFont(Typography::caption());
         g.drawText("Play a note or sing into selected input", gaugeBounds, juce::Justification::centred);
         return;
     }
@@ -80,13 +81,13 @@ void TunerComponent::paint(juce::Graphics& g)
     juce::Colour noteColor = inTune ? juce::Colour(0xff10b981) :
                              (std::abs(cents) <= 12.0f ? juce::Colour(0xffffaa33) : juce::Colour(0xffff5533));
     g.setColour(noteColor);
-    g.setFont(juce::FontOptions(42.0f, juce::Font::bold));
+    g.setFont(Typography::display(42.0f));
     g.drawText(noteName, noteArea, juce::Justification::centred);
 
-    // Frequency readout
+    // Frequency readout (Tabular figures that never jitter)
     auto freqArea = gaugeBounds.removeFromTop(20.0f);
     g.setColour(juce::Colour(0xff94a3b8));
-    g.setFont(juce::FontOptions(13.0f));
+    g.setFont(Typography::numeric(13.0f));
     g.drawText(juce::String::formatted("%.1f Hz  (%.1f cents)", currentResult.frequency, cents),
                freqArea, juce::Justification::centred);
 
@@ -113,7 +114,7 @@ void TunerComponent::paint(juce::Graphics& g)
 
     // Labels
     g.setColour(juce::Colour(0xff64748b));
-    g.setFont(juce::FontOptions(10.0f));
+    g.setFont(Typography::caption(10.0f));
     g.drawText("-50b", meterArea.getX(), meterArea.getBottom() + 2, 35, 14, juce::Justification::left);
     g.drawText("+50#", meterArea.getRight() - 35, meterArea.getBottom() + 2, 35, 14, juce::Justification::right);
     g.drawText("IN TUNE", centerX - 25, meterArea.getBottom() + 2, 50, 14, juce::Justification::centred);

@@ -1,4 +1,5 @@
 #include "IntroScreenComponent.h"
+#include "../common/Typography.h"
 #include <cmath>
 #include <algorithm>
 
@@ -53,9 +54,9 @@ void IntroScreenComponent::RoleChipButton::paintButton(juce::Graphics& g, bool s
         g.drawEllipse(iconX - iconRadius - 2.0f, iconY - iconRadius - 2.0f, (iconRadius + 2.0f) * 2.0f, (iconRadius + 2.0f) * 2.0f, 1.0f);
     }
 
-    // Text Label
+    // Text Label using Inter
     g.setColour(isSelected ? juce::Colour(ThemeConfig::kTextPrimaryHex) : juce::Colour(ThemeConfig::kTextMutedHex));
-    g.setFont(juce::FontOptions(12.0f, isSelected ? juce::Font::bold : juce::Font::plain));
+    g.setFont(isSelected ? Typography::bodyStrong().withHeight(12.0f) : Typography::body().withHeight(12.0f));
     g.drawText(getButtonText(), bounds.withTrimmedLeft(24.0f), juce::Justification::centredLeft, true);
 }
 
@@ -93,9 +94,9 @@ void IntroScreenComponent::GradientEnterButton::paintButton(juce::Graphics& g, b
         g.drawRoundedRectangle(bounds, 12.0f, 1.0f);
     }
 
-    // Button text
+    // Button text using Sora 600
     g.setColour(juce::Colour(0xffffffff));
-    g.setFont(juce::FontOptions(15.0f, juce::Font::bold));
+    g.setFont(Typography::button(15.0f));
     g.drawText(getButtonText(), bounds, juce::Justification::centred, false);
 }
 
@@ -117,20 +118,24 @@ IntroScreenComponent::IntroScreenComponent()
 
     // Setup Name Input UI Controls
     cardTitleLabel.setText("What should your bandmates call you?", juce::dontSendNotification);
-    cardTitleLabel.setFont(juce::FontOptions(19.0f, juce::Font::bold));
+    cardTitleLabel.setFont(Typography::h2());
     cardTitleLabel.setJustificationType(juce::Justification::centred);
     cardTitleLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
     addChildComponent(cardTitleLabel);
 
     cardSubtitleLabel.setText("Your avatar and role color will represent you in the Jam Room.", juce::dontSendNotification);
-    cardSubtitleLabel.setFont(juce::FontOptions(12.0f));
+    cardSubtitleLabel.setFont(Typography::caption());
     cardSubtitleLabel.setJustificationType(juce::Justification::centred);
     cardSubtitleLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addChildComponent(cardSubtitleLabel);
 
+    // Single-lined input text box with smooth rounded edges & comfortable padding
+    nameEditor.setMultiLine(false);
+    nameEditor.setReturnKeyStartsNewLine(false);
+    nameEditor.setIndents(16, 0);
     nameEditor.setInputRestrictions(24);
     nameEditor.setTextToShowWhenEmpty("Enter your musician handle...", juce::Colour(ThemeConfig::kTextDimHex));
-    nameEditor.setFont(juce::FontOptions(15.0f, juce::Font::bold));
+    nameEditor.setFont(Typography::bodyStrong().withHeight(15.0f));
     nameEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
     nameEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
     nameEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
@@ -482,7 +487,7 @@ void IntroScreenComponent::drawAvatarOrb(juce::Graphics& g, const juce::Rectangl
     if (initial.isEmpty()) initial = "P";
 
     g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex).withAlpha(alpha));
-    g.setFont(juce::FontOptions(bounds.getHeight() * 0.46f, juce::Font::bold));
+    g.setFont(Typography::display(bounds.getHeight() * 0.44f));
     g.drawText(initial, bounds, juce::Justification::centred, false);
 }
 
@@ -590,7 +595,7 @@ void IntroScreenComponent::paintPaasPhoosIntroAnimation(juce::Graphics& g, const
         float tagAlpha = TweenEngine::easeOutCubic(tagProgress) * transitionFade;
 
         g.setColour(juce::Colour(ThemeConfig::kTextMutedHex).withAlpha(tagAlpha));
-        g.setFont(juce::FontOptions(14.0f));
+        g.setFont(Typography::h3().withHeight(14.0f));
         g.drawText(ThemeConfig::kTaglineText,
                    juce::Rectangle<float>(cx - 260.0f, currentCenterY + 52.0f, 520.0f, 24.0f),
                    juce::Justification::centred, false);
@@ -648,14 +653,14 @@ void IntroScreenComponent::paintWordmarkLetters(juce::Graphics& g, float centerX
         if (letterProgress > 0.75f && !isLiteMode)
         {
             g.setColour(juce::Colour(ThemeConfig::kAccentVioletHex).withAlpha(0.22f * letterAlpha));
-            g.setFont(juce::FontOptions(34.0f, juce::Font::bold));
+            g.setFont(Typography::display(34.0f));
             g.drawText(word.substring(i, i + 1), juce::Rectangle<float>(lx - 18.0f, letterY - 20.0f, 36.0f, 40.0f),
                        juce::Justification::centred, false);
         }
 
         // Letter text
         g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex).withAlpha(letterAlpha));
-        g.setFont(juce::FontOptions(32.0f, juce::Font::bold));
+        g.setFont(Typography::display(32.0f));
         g.drawText(word.substring(i, i + 1), juce::Rectangle<float>(lx - 18.0f, letterY - 20.0f, 36.0f, 40.0f),
                        juce::Justification::centred, false);
     }
@@ -738,7 +743,7 @@ void IntroScreenComponent::paintAvatarFlightTransition(juce::Graphics& g, const 
     {
         float textAlpha = std::sin(ease * juce::MathConstants<float>::pi);
         g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex).withAlpha(textAlpha));
-        g.setFont(juce::FontOptions(22.0f, juce::Font::bold));
+        g.setFont(Typography::h1().withHeight(22.0f));
         g.drawText("Welcome to the Jam Room, " + getMusicianName() + "!",
                    juce::Rectangle<float>(bounds.getCentreX() - 300.0f, bounds.getCentreY() + 80.0f, 600.0f, 32.0f),
                    juce::Justification::centred, false);
@@ -769,7 +774,7 @@ void IntroScreenComponent::paint(juce::Graphics& g)
         }
 
         g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex));
-        g.setFont(juce::FontOptions(18.0f, juce::Font::bold));
+        g.setFont(Typography::display(18.0f));
         g.drawText("PAASPHOOS", juce::Rectangle<float>(bounds.getCentreX() - 150.0f, 82.0f, 300.0f, 22.0f),
                    juce::Justification::centred, false);
 

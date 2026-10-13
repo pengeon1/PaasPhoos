@@ -228,8 +228,20 @@ PaasPhoos automatically scans the system VST3 directory (`C:\Program Files\Commo
 
 ---
 
-## 10. License
+## 10. Typography & Design Tokens
+
+PaasPhoos bundles an offline typography system licensed under the SIL Open Font License (OFL):
+- **Sora (600 SemiBold, 700 Bold)**: Wordmark, screen titles, hero headings, and primary CTA buttons.
+- **Inter (400 Regular, 500 Medium, 600 SemiBold)**: UI controls, labels, settings, menus, and channel strip names.
+- **JetBrains Mono (400 Regular, 500 Medium)**: Live numeric telemetry (BPM, ping, jitter, packet loss, dB meter readouts, sample rate, buffer size) using tabular figures that never shift width.
+
+All fonts are embedded directly into the application executable via JUCE BinaryData (`juce_add_binary_data`), ensuring 100% offline functionality across hostel and university LAN networks without internet access. License texts are located in `assets/fonts/licenses/`.
+
+---
+
+## 11. License
 
 PaasPhoos is open-source software licensed under the **GNU General Public License v3.0 (GPLv3)**.
 - JUCE 8 is licensed under the GPLv3 for open-source software.
 - The Steinberg ASIO SDK is utilized in compliance with the Steinberg Audio Stream I/O API Agreement.
+- Bundled typefaces (Sora, Inter, JetBrains Mono) are licensed under the SIL Open Font License 1.1.

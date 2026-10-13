@@ -17,37 +17,27 @@ MainComponent::MainComponent(AudioEngine& engine, bool introPreviewMode)
 {
     currentMusicianRoleColor = juce::Colour(ThemeConfig::kAccentVioletHex);
 
-    // Try to load generated brand logo from resources
-    auto logoFile = juce::File::getCurrentWorkingDirectory().getChildFile("resources/logo.jpg");
-    if (!logoFile.existsAsFile())
-    {
-        logoFile = juce::File::getSpecialLocation(juce::File::currentExecutableFile).getParentDirectory().getChildFile("resources/logo.jpg");
-    }
-    if (logoFile.existsAsFile())
-    {
-        logoImage = juce::ImageFileFormat::loadFrom(logoFile);
-    }
+    // Load brand logo from Typography (bundled BinaryData with disk fallback)
+    logoImage = Typography::getLogoImage();
 
-    // Logo & Header
-    logoLabel.setText("PAASPHOOS", juce::dontSendNotification);
-    logoLabel.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-    logoLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
-    addAndMakeVisible(logoLabel);
+    // Reusable Brand Wordmark (Sora 700 gradient)
+    logoWordmark.setFontSize(22.0f);
+    addAndMakeVisible(logoWordmark);
 
     subtitleLabel.setText("Ultra-Low Latency Band Jamming Console", juce::dontSendNotification);
-    subtitleLabel.setFont(juce::FontOptions(11.0f));
+    subtitleLabel.setFont(Typography::caption());
     subtitleLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(subtitleLabel);
 
     modeBadgeLabel.setText("STUDIO JAM ENGINE / ONLINE", juce::dontSendNotification);
-    modeBadgeLabel.setFont(juce::FontOptions(10.0f, juce::Font::bold));
+    modeBadgeLabel.setFont(Typography::labelCaps(10.0f));
     modeBadgeLabel.setJustificationType(juce::Justification::centred);
     modeBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff161a24));
     modeBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kAccentCyanHex));
     addAndMakeVisible(modeBadgeLabel);
 
     cpuBadgeLabel.setText("CPU: 0.0%", juce::dontSendNotification);
-    cpuBadgeLabel.setFont(juce::FontOptions(10.0f, juce::Font::bold));
+    cpuBadgeLabel.setFont(Typography::numeric(10.5f));
     cpuBadgeLabel.setJustificationType(juce::Justification::centred);
     cpuBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(ThemeConfig::kSurfaceHex));
     cpuBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
@@ -93,12 +83,12 @@ MainComponent::MainComponent(AudioEngine& engine, bool introPreviewMode)
 
     // Status Bar
     statusBarLabel.setText("Ready: Audio Engine Initialized", juce::dontSendNotification);
-    statusBarLabel.setFont(juce::FontOptions(11.0f));
+    statusBarLabel.setFont(Typography::caption());
     statusBarLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
     addAndMakeVisible(statusBarLabel);
 
     mmcssStatusLabel.setText("MMCSS: Pro Audio Active", juce::dontSendNotification);
-    mmcssStatusLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    mmcssStatusLabel.setFont(Typography::numeric(10.5f));
     mmcssStatusLabel.setJustificationType(juce::Justification::centredRight);
     mmcssStatusLabel.setColour(juce::Label::textColourId, juce::Colour(ThemeConfig::kAccentCyanHex));
     addAndMakeVisible(mmcssStatusLabel);
@@ -308,7 +298,7 @@ void MainComponent::resized()
     auto headerArea = area.removeFromTop(54).reduced(12, 6);
     headerArea.removeFromLeft(44); // Space for logo icon (x: 12, w: 36)
     auto titleArea = headerArea.removeFromLeft(360);
-    logoLabel.setBounds(titleArea.removeFromTop(24));
+    logoWordmark.setBounds(titleArea.removeFromTop(24));
     subtitleLabel.setBounds(titleArea);
 
     cpuBadgeLabel.setBounds(headerArea.removeFromRight(110).reduced(0, 4));
@@ -361,6 +351,140 @@ void MainComponent::resized()
     // Intro Screen & Musician Profile setup covers window when active
     introScreen.setBounds(getLocalBounds());
     introScreen.toFront(true);
+}
+
+void MainComponent::exportScreenshots(const juce::File& outputDir)
+{
+    outputDir.createDirectory();
+    const int baseW = 1366;
+    const int baseH = 768;
+    setSize(baseW, baseH);
+
+    isEntranceAnimating = false;
+    sessionPanel.setAlpha(1.0f);
+    audioSettingsPanel.setAlpha(1.0f);
+    metronomeComponent.setAlpha(1.0f);
+    viewMixerBtn.setAlpha(1.0f);
+    viewFxBtn.setAlpha(1.0f);
+    viewDrumsBtn.setAlpha(1.0f);
+    viewRehearsalBtn.setAlpha(1.0f);
+    mixerPanel.setAlpha(1.0f);
+    tunerComponent.setAlpha(1.0f);
+    effectsPanel.setAlpha(1.0f);
+    drumPanel.setAlpha(1.0f);
+    rehearsalToolsPanel.setAlpha(1.0f);
+
+    auto saveImage = [](const juce::Image& img, const juce::File& file)
+    {
+        if (file.existsAsFile()) file.deleteFile();
+        juce::FileOutputStream stream(file);
+        if (stream.openedOk())
+        {
+            juce::PNGImageFormat png;
+            png.writeImageToStream(img, stream);
+        }
+    };
+
+    auto captureComponentAtScale = [baseW, baseH, &saveImage](juce::Component& comp, float scale, const juce::File& file)
+    {
+        int w = juce::roundToInt((float)baseW * scale);
+        int h = juce::roundToInt((float)baseH * scale);
+        juce::Image img(juce::Image::ARGB, w, h, true);
+        {
+            juce::Graphics g(img);
+            if (scale != 1.0f)
+                g.addTransform(juce::AffineTransform::scale(scale));
+            comp.paintEntireComponent(g, true);
+        }
+        saveImage(img, file);
+    };
+
+    const float dpiScales[] = { 1.0f, 1.5f, 2.0f };
+    const char* dpiNames[] = { "100dpi", "150dpi", "200dpi" };
+
+    // 1. Intro Wordmark & Name Screen
+    introScreen.setVisible(true);
+    introScreen.setBounds(0, 0, baseW, baseH);
+    for (int d = 0; d < 3; ++d)
+    {
+        float scale = dpiScales[d];
+        auto wordmarkImg = introScreen.captureFrameAtTime(1.1f, baseW, baseH);
+        if (scale != 1.0f)
+            wordmarkImg = wordmarkImg.rescaled(juce::roundToInt(baseW * scale), juce::roundToInt(baseH * scale), juce::Graphics::highResamplingQuality);
+        saveImage(wordmarkImg, outputDir.getChildFile(juce::String("01_intro_wordmark_") + dpiNames[d] + ".png"));
+
+        auto nameImg = introScreen.captureFrameAtTime(2.7f, baseW, baseH);
+        if (scale != 1.0f)
+            nameImg = nameImg.rescaled(juce::roundToInt(baseW * scale), juce::roundToInt(baseH * scale), juce::Graphics::highResamplingQuality);
+        saveImage(nameImg, outputDir.getChildFile(juce::String("02_name_screen_") + dpiNames[d] + ".png"));
+    }
+
+    introScreen.setVisible(false);
+
+    // 2. Main Mixer with 6 channels
+    mixerPanel.populateMockBandChannels();
+    switchView(0);
+    resized();
+    for (int d = 0; d < 3; ++d)
+    {
+        captureComponentAtScale(*this, dpiScales[d], outputDir.getChildFile(juce::String("03_mixer_6_channels_") + dpiNames[d] + ".png"));
+    }
+
+    // 3. Effects Rack with differentiated, color-coded knobs
+    switchView(1);
+    resized();
+    for (int d = 0; d < 3; ++d)
+    {
+        captureComponentAtScale(*this, dpiScales[d], outputDir.getChildFile(juce::String("04_effects_rack_differentiated_knobs_") + dpiNames[d] + ".png"));
+    }
+
+    // 4. Drum Machine view
+    switchView(2);
+    resized();
+    for (int d = 0; d < 3; ++d)
+    {
+        captureComponentAtScale(*this, dpiScales[d], outputDir.getChildFile(juce::String("05_drum_machine_") + dpiNames[d] + ".png"));
+    }
+
+    // 5. Latency Panel & HUD
+    for (int d = 0; d < 3; ++d)
+    {
+        float scale = dpiScales[d];
+        int sw = sessionPanel.getWidth();
+        int sh = sessionPanel.getHeight();
+        if (sw > 0 && sh > 0)
+        {
+            int pw = juce::roundToInt(sw * scale);
+            int ph = juce::roundToInt(sh * scale);
+            juce::Image pImg(juce::Image::ARGB, pw, ph, true);
+            {
+                juce::Graphics g(pImg);
+                if (scale != 1.0f) g.addTransform(juce::AffineTransform::scale(scale));
+                sessionPanel.paintEntireComponent(g, true);
+            }
+            saveImage(pImg, outputDir.getChildFile(juce::String("06_latency_panel_readouts_") + dpiNames[d] + ".png"));
+        }
+    }
+
+    // 6. Settings Dialog / Panel
+    for (int d = 0; d < 3; ++d)
+    {
+        float scale = dpiScales[d];
+        int sw = audioSettingsPanel.getWidth();
+        int sh = audioSettingsPanel.getHeight();
+        if (sw > 0 && sh > 0)
+        {
+            int pw = juce::roundToInt(sw * scale);
+            int ph = juce::roundToInt(sh * scale);
+            juce::Image pImg(juce::Image::ARGB, pw, ph, true);
+            {
+                juce::Graphics g(pImg);
+                if (scale != 1.0f) g.addTransform(juce::AffineTransform::scale(scale));
+                audioSettingsPanel.paintEntireComponent(g, true);
+            }
+            saveImage(pImg, outputDir.getChildFile(juce::String("07_audio_settings_dialog_") + dpiNames[d] + ".png"));
+        }
+    }
 }
 
 } // namespace paasphoos

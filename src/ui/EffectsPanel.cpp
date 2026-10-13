@@ -1,4 +1,6 @@
 #include "EffectsPanel.h"
+#include "../common/ThemeConfig.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -10,7 +12,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     pluginHostManager.addChangeListener(this);
 
     headerLabel.setText("GUITAR & VOCAL FX RACK (DSP + VST3 HOST)", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(12.5f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(headerLabel);
 
@@ -37,104 +39,150 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     };
     addAndMakeVisible(presetCombo);
 
-    // Gate
+    // Helper to style knob labels
+    auto setupLabel = [this](juce::Label& lbl, const juce::String& text, juce::Colour col)
+    {
+        lbl.setText(text, juce::dontSendNotification);
+        lbl.setFont(Typography::labelCaps(10.5f));
+        lbl.setJustificationType(juce::Justification::centred);
+        lbl.setColour(juce::Label::textColourId, col);
+        addAndMakeVisible(lbl);
+    };
+
+    // Helper to style rotary knobs
+    auto setupKnob = [this](juce::Slider& s, juce::Colour fillCol, juce::Colour thumbCol)
+    {
+        s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 48, 14);
+        s.setColour(juce::Slider::rotarySliderFillColourId, fillCol);
+        s.setColour(juce::Slider::thumbColourId, thumbCol);
+        s.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+        s.setColour(juce::Slider::textBoxTextColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+        addAndMakeVisible(s);
+    };
+
+    // ==========================================
+    // Module 1: Noise Gate (Amber/Coral)
+    // ==========================================
+    const juce::Colour kGateCol(0xffff7a45);
     gateToggle.setButtonText("Gate");
     gateToggle.setToggleState(true, juce::dontSendNotification);
     gateToggle.onStateChange = [this]() { fxChain.setGateEnabled(gateToggle.getToggleState()); };
     addAndMakeVisible(gateToggle);
 
-    gateThreshSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    gateThreshSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(gateThreshLabel, "THRESH", kGateCol.brighter(0.2f));
+    setupKnob(gateThreshSlider, kGateCol, juce::Colour(0xffffb547));
     gateThreshSlider.setRange(-70.0, -10.0, 1.0);
     gateThreshSlider.setValue(-48.0, juce::dontSendNotification);
-    gateThreshSlider.textFromValueFunction = [](double v) { return juce::String((int)v) + "dB"; };
+    gateThreshSlider.textFromValueFunction = [](double v) { return juce::String((int)v) + " dB"; };
     gateThreshSlider.onValueChange = [this]() { fxChain.setGateThreshold((float)gateThreshSlider.getValue()); };
-    addAndMakeVisible(gateThreshSlider);
 
-    // Drive
+    // ==========================================
+    // Module 2: Overdrive (Flame Amber)
+    // ==========================================
+    const juce::Colour kDriveCol(0xffff9900);
     driveToggle.setButtonText("Drive");
     driveToggle.setToggleState(false, juce::dontSendNotification);
     driveToggle.onStateChange = [this]() { fxChain.setDriveEnabled(driveToggle.getToggleState()); };
     addAndMakeVisible(driveToggle);
 
-    driveAmountSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    driveAmountSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(driveAmountLabel, "DRIVE", kDriveCol.brighter(0.2f));
+    setupKnob(driveAmountSlider, kDriveCol, juce::Colour(0xffffcc00));
     driveAmountSlider.setRange(0.0, 10.0, 0.1);
     driveAmountSlider.setValue(3.5, juce::dontSendNotification);
+    driveAmountSlider.textFromValueFunction = [](double v) { return juce::String(v, 1); };
     driveAmountSlider.onValueChange = [this]() { fxChain.setDriveAmount((float)driveAmountSlider.getValue()); };
-    addAndMakeVisible(driveAmountSlider);
 
-    driveToneSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    driveToneSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(driveToneLabel, "TONE", kDriveCol.brighter(0.2f));
+    setupKnob(driveToneSlider, juce::Colour(0xffff7700), juce::Colour(0xffffaa33));
     driveToneSlider.setRange(0.0, 1.0, 0.05);
     driveToneSlider.setValue(0.6, juce::dontSendNotification);
+    driveToneSlider.textFromValueFunction = [](double v) { return juce::String((int)(v * 100)) + "%"; };
     driveToneSlider.onValueChange = [this]() { fxChain.setDriveTone((float)driveToneSlider.getValue()); };
-    addAndMakeVisible(driveToneSlider);
 
-    // Compressor
+    // ==========================================
+    // Module 3: Compressor (Electric Blue)
+    // ==========================================
+    const juce::Colour kCompCol(0xff3da5ff);
     compToggle.setButtonText("Comp");
     compToggle.setToggleState(true, juce::dontSendNotification);
     compToggle.onStateChange = [this]() { fxChain.setCompEnabled(compToggle.getToggleState()); };
     addAndMakeVisible(compToggle);
 
-    compThreshSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compThreshSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(compThreshLabel, "THRESH", kCompCol.brighter(0.2f));
+    setupKnob(compThreshSlider, kCompCol, juce::Colour(0xff38e1c6));
     compThreshSlider.setRange(-50.0, 0.0, 1.0);
     compThreshSlider.setValue(-18.0, juce::dontSendNotification);
-    compThreshSlider.textFromValueFunction = [](double v) { return juce::String((int)v) + "dB"; };
+    compThreshSlider.textFromValueFunction = [](double v) { return juce::String((int)v) + " dB"; };
     compThreshSlider.onValueChange = [this]() { fxChain.setCompThreshold((float)compThreshSlider.getValue()); };
-    addAndMakeVisible(compThreshSlider);
 
-    compMakeupSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    compMakeupSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(compMakeupLabel, "MAKEUP", kCompCol.brighter(0.2f));
+    setupKnob(compMakeupSlider, juce::Colour(0xff00b0ff), juce::Colour(0xff80d8ff));
     compMakeupSlider.setRange(0.0, 18.0, 0.5);
     compMakeupSlider.setValue(3.0, juce::dontSendNotification);
-    compMakeupSlider.textFromValueFunction = [](double v) { return "+" + juce::String((int)v) + "dB"; };
+    compMakeupSlider.textFromValueFunction = [](double v) { return "+" + juce::String((int)v) + " dB"; };
     compMakeupSlider.onValueChange = [this]() { fxChain.setCompMakeup((float)compMakeupSlider.getValue()); };
-    addAndMakeVisible(compMakeupSlider);
 
-    // EQ
+    // ==========================================
+    // Module 4: 4-Band EQ (Emerald / Teal / Violet / Magenta)
+    // ==========================================
+    const juce::Colour kEqCol(0xff3ddc84);
     eqToggle.setButtonText("4-Band EQ");
     eqToggle.setToggleState(true, juce::dontSendNotification);
     eqToggle.onStateChange = [this]() { fxChain.setEqEnabled(eqToggle.getToggleState()); };
     addAndMakeVisible(eqToggle);
 
-    auto setupEqKnob = [this](juce::Slider& s, float val)
+    auto setupEqSlider = [this](juce::Slider& s, float val, juce::Colour c1, juce::Colour c2)
     {
         s.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-        s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 36, 14);
+        s.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 44, 14);
+        s.setColour(juce::Slider::rotarySliderFillColourId, c1);
+        s.setColour(juce::Slider::thumbColourId, c2);
+        s.setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+        s.setColour(juce::Slider::textBoxTextColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
         s.setRange(-12.0, 12.0, 0.5);
         s.setValue(val, juce::dontSendNotification);
-        s.textFromValueFunction = [](double v) { return juce::String::formatted("%+.0f", v); };
+        s.textFromValueFunction = [](double v) { return juce::String::formatted("%+.0f dB", v); };
         addAndMakeVisible(s);
     };
 
-    setupEqKnob(eqLowSlider, 0.0f);
+    setupLabel(eqLowLabel, "LOW 80Hz", juce::Colour(0xff69f0ae));
+    setupEqSlider(eqLowSlider, 0.0f, juce::Colour(0xff3ddc84), juce::Colour(0xff69f0ae));
     eqLowSlider.onValueChange = [this]() { fxChain.setEqLowGain((float)eqLowSlider.getValue()); };
-    setupEqKnob(eqMid1Slider, 0.0f);
+
+    setupLabel(eqMid1Label, "MID 500Hz", juce::Colour(0xff64ffda));
+    setupEqSlider(eqMid1Slider, 0.0f, juce::Colour(0xff38e1c6), juce::Colour(0xff64ffda));
     eqMid1Slider.onValueChange = [this]() { fxChain.setEqMid1Gain((float)eqMid1Slider.getValue()); };
-    setupEqKnob(eqMid2Slider, 0.0f);
+
+    setupLabel(eqMid2Label, "MID 2.5k", juce::Colour(0xffb388ff));
+    setupEqSlider(eqMid2Slider, 0.0f, juce::Colour(0xff7c5cff), juce::Colour(0xffb388ff));
     eqMid2Slider.onValueChange = [this]() { fxChain.setEqMid2Gain((float)eqMid2Slider.getValue()); };
-    setupEqKnob(eqHighSlider, 0.0f);
+
+    setupLabel(eqHighLabel, "HIGH 8k", juce::Colour(0xffea80fc));
+    setupEqSlider(eqHighSlider, 0.0f, juce::Colour(0xffe040fb), juce::Colour(0xffea80fc));
     eqHighSlider.onValueChange = [this]() { fxChain.setEqHighGain((float)eqHighSlider.getValue()); };
 
-    // Reverb
+    // ==========================================
+    // Module 5: Reverb (Magenta / Neon Violet)
+    // ==========================================
+    const juce::Colour kReverbCol(0xffe040fb);
     reverbToggle.setButtonText("Reverb");
     reverbToggle.setToggleState(true, juce::dontSendNotification);
     reverbToggle.onStateChange = [this]() { fxChain.setReverbEnabled(reverbToggle.getToggleState()); };
     addAndMakeVisible(reverbToggle);
 
-    reverbWetSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    reverbWetSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 14);
+    setupLabel(reverbWetLabel, "MIX / WET", kReverbCol.brighter(0.2f));
+    setupKnob(reverbWetSlider, kReverbCol, juce::Colour(0xffff80ab));
     reverbWetSlider.setRange(0.0, 1.0, 0.02);
     reverbWetSlider.setValue(0.25, juce::dontSendNotification);
     reverbWetSlider.textFromValueFunction = [](double v) { return juce::String((int)(v * 100)) + "%"; };
     reverbWetSlider.onValueChange = [this]() { fxChain.setReverbWet((float)reverbWetSlider.getValue()); };
-    addAndMakeVisible(reverbWetSlider);
 
+    // ==========================================
     // VST3 Hosting Section
+    // ==========================================
     vst3SectionLabel.setText("VST3 HOST:", juce::dontSendNotification);
-    vst3SectionLabel.setFont(juce::FontOptions(11.0f, juce::Font::bold));
+    vst3SectionLabel.setFont(Typography::labelCaps(11.0f));
     vst3SectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
     addAndMakeVisible(vst3SectionLabel);
 
@@ -192,9 +240,48 @@ void EffectsPanel::refreshPluginList()
 
 void EffectsPanel::paint(juce::Graphics& g)
 {
+    // Background fill
     g.fillAll(juce::Colour(0xff090a0d));
-    g.setColour(juce::Colour(0xff22252e));
+
+    // Outer container stroke
+    g.setColour(juce::Colour(ThemeConfig::kBorderSubtleHex));
     g.drawRect(getLocalBounds(), 1);
+
+    auto area = getLocalBounds().reduced(8, 4);
+    area.removeFromTop(26); // Skip top bar
+    area.removeFromTop(4);
+
+    // Module Card backgrounds
+    auto knobArea = area;
+    int totalUnits = 1 + 2 + 2 + 4 + 1; // 10 units
+    float unitW = (float)knobArea.getWidth() / (float)totalUnits;
+
+    auto drawModuleCard = [&](float startUnit, float numUnits, const juce::Colour& accentCol)
+    {
+        auto cardRect = juce::Rectangle<float>(
+            knobArea.getX() + startUnit * unitW + 2.0f,
+            (float)knobArea.getY() + 1.0f,
+            numUnits * unitW - 4.0f,
+            (float)knobArea.getHeight() - 2.0f);
+
+        // Subtle dark tinted background
+        g.setColour(juce::Colour(ThemeConfig::kSurfaceHex).withAlpha(0.65f));
+        g.fillRoundedRectangle(cardRect, 6.0f);
+
+        // Accent top border line
+        g.setColour(accentCol.withAlpha(0.5f));
+        g.drawRoundedRectangle(cardRect, 6.0f, 1.0f);
+
+        // Subtle glowing header bar
+        g.setColour(accentCol.withAlpha(0.12f));
+        g.fillRoundedRectangle(cardRect.withHeight(18.0f), 6.0f);
+    };
+
+    drawModuleCard(0.0f, 1.0f, juce::Colour(0xffff7a45)); // Gate
+    drawModuleCard(1.0f, 2.0f, juce::Colour(0xffff9900)); // Drive
+    drawModuleCard(3.0f, 2.0f, juce::Colour(0xff3da5ff)); // Comp
+    drawModuleCard(5.0f, 4.0f, juce::Colour(0xff3ddc84)); // EQ
+    drawModuleCard(9.0f, 1.0f, juce::Colour(0xffe040fb)); // Reverb
 }
 
 void EffectsPanel::resized()
@@ -202,7 +289,7 @@ void EffectsPanel::resized()
     auto area = getLocalBounds().reduced(8, 4);
 
     // Row 1: Header + Presets + VST3 quick bar
-    auto topRow = area.removeFromTop(22);
+    auto topRow = area.removeFromTop(24);
     headerLabel.setBounds(topRow.removeFromLeft(270));
     masterFxToggle.setBounds(topRow.removeFromLeft(75));
     presetCombo.setBounds(topRow.removeFromLeft(150));
@@ -221,48 +308,58 @@ void EffectsPanel::resized()
     topRow.removeFromLeft(8);
     sendWetOnlyToggle.setBounds(topRow);
 
-    area.removeFromTop(4);
+    area.removeFromTop(6);
 
     // Row 2: DSP Knobs Rack
     auto knobArea = area;
-    int colW = knobArea.getWidth() / 8;
+    int totalUnits = 1 + 2 + 2 + 4 + 1; // 10 units
+    int unitW = knobArea.getWidth() / totalUnits;
 
-    // Gate
-    auto col0 = knobArea.removeFromLeft(colW).reduced(2);
-    gateToggle.setBounds(col0.removeFromTop(18));
-    gateThreshSlider.setBounds(col0);
+    // Helper to position a knob and its label inside a column area
+    auto layoutKnobWithLabel = [](juce::Rectangle<int> col, juce::Label& lbl, juce::Slider& s)
+    {
+        int labelH = 14;
+        lbl.setBounds(col.removeFromTop(labelH));
+        s.setBounds(col);
+    };
 
-    // Drive (Amount & Tone)
-    auto col1 = knobArea.removeFromLeft(colW).reduced(2);
-    driveToggle.setBounds(col1.removeFromTop(18));
-    driveAmountSlider.setBounds(col1);
+    // Module 1: Gate (1 unit)
+    auto colGate = knobArea.removeFromLeft(unitW).reduced(4, 2);
+    gateToggle.setBounds(colGate.removeFromTop(16));
+    colGate.removeFromTop(2);
+    layoutKnobWithLabel(colGate, gateThreshLabel, gateThreshSlider);
 
-    auto col2 = knobArea.removeFromLeft(colW).reduced(2);
-    driveToneSlider.setBounds(col2);
+    // Module 2: Drive (2 units)
+    auto colDrive = knobArea.removeFromLeft(unitW * 2).reduced(4, 2);
+    driveToggle.setBounds(colDrive.removeFromTop(16));
+    colDrive.removeFromTop(2);
+    int driveW = colDrive.getWidth() / 2;
+    layoutKnobWithLabel(colDrive.removeFromLeft(driveW), driveAmountLabel, driveAmountSlider);
+    layoutKnobWithLabel(colDrive, driveToneLabel, driveToneSlider);
 
-    // Comp (Thresh & Makeup)
-    auto col3 = knobArea.removeFromLeft(colW).reduced(2);
-    compToggle.setBounds(col3.removeFromTop(18));
-    compThreshSlider.setBounds(col3);
+    // Module 3: Compressor (2 units)
+    auto colComp = knobArea.removeFromLeft(unitW * 2).reduced(4, 2);
+    compToggle.setBounds(colComp.removeFromTop(16));
+    colComp.removeFromTop(2);
+    int compW = colComp.getWidth() / 2;
+    layoutKnobWithLabel(colComp.removeFromLeft(compW), compThreshLabel, compThreshSlider);
+    layoutKnobWithLabel(colComp, compMakeupLabel, compMakeupSlider);
 
-    auto col4 = knobArea.removeFromLeft(colW).reduced(2);
-    compMakeupSlider.setBounds(col4);
+    // Module 4: 4-Band EQ (4 units)
+    auto colEq = knobArea.removeFromLeft(unitW * 4).reduced(4, 2);
+    eqToggle.setBounds(colEq.removeFromTop(16));
+    colEq.removeFromTop(2);
+    int eqW = colEq.getWidth() / 4;
+    layoutKnobWithLabel(colEq.removeFromLeft(eqW), eqLowLabel, eqLowSlider);
+    layoutKnobWithLabel(colEq.removeFromLeft(eqW), eqMid1Label, eqMid1Slider);
+    layoutKnobWithLabel(colEq.removeFromLeft(eqW), eqMid2Label, eqMid2Slider);
+    layoutKnobWithLabel(colEq, eqHighLabel, eqHighSlider);
 
-    // 4-Band EQ (Low & Mid1)
-    auto col5 = knobArea.removeFromLeft(colW).reduced(2);
-    eqToggle.setBounds(col5.removeFromTop(18));
-    eqLowSlider.setBounds(col5.removeFromLeft(col5.getWidth() / 2));
-    eqMid1Slider.setBounds(col5);
-
-    // EQ (Mid2 & High)
-    auto col6 = knobArea.removeFromLeft(colW).reduced(2);
-    eqMid2Slider.setBounds(col6.removeFromLeft(col6.getWidth() / 2));
-    eqHighSlider.setBounds(col6);
-
-    // Reverb
-    auto col7 = knobArea.reduced(2);
-    reverbToggle.setBounds(col7.removeFromTop(18));
-    reverbWetSlider.setBounds(col7);
+    // Module 5: Reverb (1 unit)
+    auto colReverb = knobArea.reduced(4, 2);
+    reverbToggle.setBounds(colReverb.removeFromTop(16));
+    colReverb.removeFromTop(2);
+    layoutKnobWithLabel(colReverb, reverbWetLabel, reverbWetSlider);
 }
 
 } // namespace paasphoos

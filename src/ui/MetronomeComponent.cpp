@@ -1,4 +1,5 @@
 #include "MetronomeComponent.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -7,7 +8,7 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
     : audioEngine(engine)
 {
     headerLabel.setText("MASTER METRONOME / CLICK", juce::dontSendNotification);
-    headerLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    headerLabel.setFont(Typography::h3());
     headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(headerLabel);
 
@@ -24,9 +25,9 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
     };
     addAndMakeVisible(playButton);
 
-    // BPM Display
+    // BPM Display (Tabular monospace figures that never jitter)
     bpmDisplayLabel.setText("120 BPM", juce::dontSendNotification);
-    bpmDisplayLabel.setFont(juce::FontOptions(16.0f, juce::Font::bold));
+    bpmDisplayLabel.setFont(Typography::numericLarge(16.0f));
     bpmDisplayLabel.setJustificationType(juce::Justification::centred);
     bpmDisplayLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff090a0d));
     bpmDisplayLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
@@ -89,7 +90,7 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
 
     // Volume
     volumeLabel.setText("Vol:", juce::dontSendNotification);
-    volumeLabel.setFont(juce::FontOptions(12.0f));
+    volumeLabel.setFont(Typography::caption());
     addAndMakeVisible(volumeLabel);
 
     volumeSlider.setRange(0.0, 1.0, 0.01);

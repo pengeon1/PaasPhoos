@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "../audio/BuiltInFxChain.h"
 #include "../audio/PluginHostManager.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -29,24 +30,39 @@ private:
     juce::ComboBox presetCombo;
 
     // Built-in DSP Controls
+    // Module 1: Noise Gate
     juce::ToggleButton gateToggle;
+    juce::Label gateThreshLabel;
     juce::Slider gateThreshSlider;
 
+    // Module 2: Overdrive / Distortion
     juce::ToggleButton driveToggle;
+    juce::Label driveAmountLabel;
     juce::Slider driveAmountSlider;
+    juce::Label driveToneLabel;
     juce::Slider driveToneSlider;
 
+    // Module 3: Compressor
     juce::ToggleButton compToggle;
+    juce::Label compThreshLabel;
     juce::Slider compThreshSlider;
+    juce::Label compMakeupLabel;
     juce::Slider compMakeupSlider;
 
+    // Module 4: 4-Band Parametric EQ
     juce::ToggleButton eqToggle;
+    juce::Label eqLowLabel;
     juce::Slider eqLowSlider;
+    juce::Label eqMid1Label;
     juce::Slider eqMid1Slider;
+    juce::Label eqMid2Label;
     juce::Slider eqMid2Slider;
+    juce::Label eqHighLabel;
     juce::Slider eqHighSlider;
 
+    // Module 5: Studio Reverb
     juce::ToggleButton reverbToggle;
+    juce::Label reverbWetLabel;
     juce::Slider reverbWetSlider;
 
     // VST3 Hosting Controls

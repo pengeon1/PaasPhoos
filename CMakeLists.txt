@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PaasPhoos VERSION 0.2.0 LANGUAGES C CXX)
+project(PaasPhoos VERSION 0.3.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,10 +30,23 @@ else()
     FetchContent_MakeAvailable(juce)
 endif()
 
+# Embed bundled fonts and branding assets
+juce_add_binary_data(PaasPhoosBinaryAssets
+    SOURCES
+        assets/fonts/Sora-SemiBold.ttf
+        assets/fonts/Sora-Bold.ttf
+        assets/fonts/Inter-Regular.ttf
+        assets/fonts/Inter-Medium.ttf
+        assets/fonts/Inter-SemiBold.ttf
+        assets/fonts/JetBrainsMono-Regular.ttf
+        assets/fonts/JetBrainsMono-Medium.ttf
+        resources/logo.jpg
+)
+
 # Define GUI Application
 juce_add_gui_app(PaasPhoos
     PRODUCT_NAME "PaasPhoos"
-    VERSION "0.2.0"
+    VERSION "0.3.0"
     COMPANY_NAME "PaasPhoos"
 )
 
@@ -94,6 +107,8 @@ target_sources(PaasPhoos PRIVATE
     src/common/LookAndFeelCustom.h
     src/common/ThemeConfig.h
     src/common/TweenEngine.h
+    src/common/Typography.h
+    src/common/Typography.cpp
 )
 
 target_include_directories(PaasPhoos PRIVATE
@@ -122,6 +137,7 @@ target_compile_definitions(PaasPhoos PRIVATE
 )
 
 target_link_libraries(PaasPhoos PRIVATE
+    PaasPhoosBinaryAssets
     juce::juce_core
     juce::juce_events
     juce::juce_graphics
@@ -206,6 +222,7 @@ add_test(NAME PaasPhoosAudioTests COMMAND PaasPhoosTests)
 add_executable(ExportIntroFrames
     tools/ExportIntroFrames.cpp
     src/ui/IntroScreenComponent.cpp
+    src/common/Typography.cpp
 )
 
 target_include_directories(ExportIntroFrames PRIVATE
@@ -220,6 +237,7 @@ target_compile_definitions(ExportIntroFrames PRIVATE
 )
 
 target_link_libraries(ExportIntroFrames PRIVATE
+    PaasPhoosBinaryAssets
     juce::juce_core
     juce::juce_events
     juce::juce_graphics

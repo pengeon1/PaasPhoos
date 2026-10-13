@@ -1,4 +1,5 @@
 #include "AudioSettingsPanel.h"
+#include "../common/Typography.h"
 
 namespace paasphoos
 {
@@ -9,13 +10,13 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
     audioEngine.addChangeListener(this);
 
     titleLabel.setText("AUDIO HARDWARE & DRIVER", juce::dontSendNotification);
-    titleLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    titleLabel.setFont(Typography::h3());
     titleLabel.setColour(juce::Label::textColourId, juce::Colour(0xff94a3b8));
     addAndMakeVisible(titleLabel);
 
     // Driver Type (WASAPI / ASIO)
     driverTypeLabel.setText("Driver Type:", juce::dontSendNotification);
-    driverTypeLabel.setFont(juce::FontOptions(12.0f));
+    driverTypeLabel.setFont(Typography::caption());
     addAndMakeVisible(driverTypeLabel);
 
     driverTypeCombo.onChange = [this]()
@@ -33,7 +34,7 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
 
     // Input Device
     inputDeviceLabel.setText("Input:", juce::dontSendNotification);
-    inputDeviceLabel.setFont(juce::FontOptions(12.0f));
+    inputDeviceLabel.setFont(Typography::caption());
     addAndMakeVisible(inputDeviceLabel);
 
     inputDeviceCombo.onChange = [this]() { if (!isUpdatingControls) applyDeviceSettings(); };
@@ -41,7 +42,7 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
 
     // Output Device
     outputDeviceLabel.setText("Output:", juce::dontSendNotification);
-    outputDeviceLabel.setFont(juce::FontOptions(12.0f));
+    outputDeviceLabel.setFont(Typography::caption());
     addAndMakeVisible(outputDeviceLabel);
 
     outputDeviceCombo.onChange = [this]() { if (!isUpdatingControls) applyDeviceSettings(); };
@@ -49,7 +50,7 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
 
     // Sample Rate
     sampleRateLabel.setText("Sample Rate:", juce::dontSendNotification);
-    sampleRateLabel.setFont(juce::FontOptions(12.0f));
+    sampleRateLabel.setFont(Typography::caption());
     addAndMakeVisible(sampleRateLabel);
 
     sampleRateCombo.addItem("44100 Hz", 1);
@@ -59,7 +60,7 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
 
     // Buffer Size
     bufferSizeLabel.setText("Buffer Size:", juce::dontSendNotification);
-    bufferSizeLabel.setFont(juce::FontOptions(12.0f));
+    bufferSizeLabel.setFont(Typography::caption());
     addAndMakeVisible(bufferSizeLabel);
 
     bufferSizeCombo.addItem("32 samples (ultra-low)", 1);
@@ -86,7 +87,7 @@ AudioSettingsPanel::AudioSettingsPanel(AudioEngine& engine)
     addAndMakeVisible(asioControlPanelButton);
 
     // Latency Badge
-    latencyBadgeLabel.setFont(juce::FontOptions(13.0f, juce::Font::bold));
+    latencyBadgeLabel.setFont(Typography::numeric(11.5f));
     latencyBadgeLabel.setJustificationType(juce::Justification::centred);
     latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff064e3b));
     latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));

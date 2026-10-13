@@ -2,6 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "ThemeConfig.h"
+#include "Typography.h"
 
 namespace paasphoos
 {
@@ -11,12 +12,16 @@ namespace paasphoos
  * Consistent global design system:
  * Base: #0B0D12, Surface: #12151C, Elevated: #1A1E28
  * Accents: Violet #7C5CFF -> Electric Blue #3DA5FF -> Cyan #38E1C6
+ * High-contrast typography: Sora, Inter, JetBrains Mono.
  */
 class DarkStudioLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
     DarkStudioLookAndFeel()
     {
+        // Initialize centralized typography cache once at startup
+        Typography::initialize();
+
         // Window & Backgrounds
         setColour(juce::ResizableWindow::backgroundColourId, juce::Colour(ThemeConfig::kBaseBackgroundHex));
 
@@ -52,14 +57,90 @@ public:
         setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
     }
 
+    // =========================================================================
+    // Typography Integration: Never use Arial, Segoe UI, or system defaults
+    // =========================================================================
+    juce::Typeface::Ptr getTypefaceForFont(const juce::Font& font) override
+    {
+        return Typography::resolveTypeface(font);
+    }
+
+    juce::Font getTextButtonFont(juce::TextButton& /*button*/, int buttonHeight) override
+    {
+        float h = juce::jlimit(11.0f, 15.0f, (float)buttonHeight * 0.55f);
+        return Typography::button(h);
+    }
+
+    juce::Font getComboBoxFont(juce::ComboBox& /*box*/) override
+    {
+        return Typography::bodySecondary();
+    }
+
+    juce::Font getPopupMenuFont() override
+    {
+        return Typography::bodySecondary();
+    }
+
+    juce::Font getAlertWindowTitleFont() override
+    {
+        return Typography::h2();
+    }
+
+    juce::Font getAlertWindowMessageFont() override
+    {
+        return Typography::body();
+    }
+
+    juce::Font getAlertWindowFont() override
+    {
+        return Typography::body();
+    }
+
+    // =========================================================================
+    // Text Editor: Rounded Single-Line Pill Box
+    // =========================================================================
+    void fillTextEditorBackground(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
+    {
+        if (textEditor.findColour(juce::TextEditor::backgroundColourId).isOpaque() ||
+            textEditor.findColour(juce::TextEditor::backgroundColourId).getAlpha() > 0)
+        {
+            g.setColour(textEditor.findColour(juce::TextEditor::backgroundColourId));
+            float cornerRadius = juce::jmin((float)height * 0.42f, 18.0f);
+            g.fillRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius);
+        }
+    }
+
+    void drawTextEditorOutline(juce::Graphics& g, int width, int height, juce::TextEditor& textEditor) override
+    {
+        float cornerRadius = juce::jmin((float)height * 0.42f, 18.0f);
+        if (textEditor.hasKeyboardFocus(true))
+        {
+            // Outer glow
+            g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.30f));
+            g.drawRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius, 3.0f);
+
+            // Crisp inner highlight
+            g.setColour(juce::Colour(ThemeConfig::kAccentBlueHex));
+            g.drawRoundedRectangle(1.5f, 1.5f, (float)width - 3.0f, (float)height - 3.0f, cornerRadius, 1.5f);
+        }
+        else
+        {
+            g.setColour(textEditor.findColour(juce::TextEditor::outlineColourId));
+            g.drawRoundedRectangle(1.0f, 1.0f, (float)width - 2.0f, (float)height - 2.0f, cornerRadius, 1.0f);
+        }
+    }
+
+    // =========================================================================
+    // Rotary Slider: Color-Coded Module Knobs
+    // =========================================================================
     void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height,
                           float sliderPosProportional, float rotaryStartAngle,
                           float rotaryEndAngle, juce::Slider& slider) override
     {
-        auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(4.0f);
+        auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(3.0f);
         auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
         auto toAngle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
-        auto lineW = juce::jmin(5.0f, radius * 0.30f);
+        auto lineW = juce::jmin(4.5f, radius * 0.28f);
         auto arcRadius = radius - lineW * 0.5f;
         auto center = bounds.getCentre();
 
@@ -70,25 +151,28 @@ public:
         g.setColour(juce::Colour(ThemeConfig::kBorderSubtleHex));
         g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
+        auto fillColour = slider.findColour(juce::Slider::rotarySliderFillColourId);
+        auto thumbColour = slider.findColour(juce::Slider::thumbColourId);
+
         // Active value arc with smooth gradient
-        if (slider.isEnabled())
+        if (slider.isEnabled() && sliderPosProportional > 0.001f)
         {
             juce::Path valueArc;
             valueArc.addCentredArc(center.x, center.y, arcRadius, arcRadius,
                                    0.0f, rotaryStartAngle, toAngle, true);
 
-            juce::ColourGradient grad(juce::Colour(ThemeConfig::kAccentVioletHex), center.x - arcRadius, center.y,
-                                      juce::Colour(ThemeConfig::kAccentBlueHex), center.x + arcRadius, center.y, false);
+            juce::ColourGradient grad(fillColour, center.x - arcRadius, center.y + arcRadius,
+                                      thumbColour, center.x + arcRadius, center.y - arcRadius, false);
             g.setGradientFill(grad);
             g.strokePath(valueArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
         }
 
         // Inner knob dial
         auto innerRadius = radius - lineW * 1.5f;
-        if (innerRadius > 4.0f)
+        if (innerRadius > 3.0f)
         {
             juce::ColourGradient dialGrad(juce::Colour(ThemeConfig::kSurfaceElevatedHex), center.x, center.y - innerRadius,
-                                         juce::Colour(ThemeConfig::kSurfaceHex), center.x, center.y + innerRadius, false);
+                                          juce::Colour(ThemeConfig::kSurfaceHex), center.x, center.y + innerRadius, false);
             g.setGradientFill(dialGrad);
             g.fillEllipse(center.x - innerRadius, center.y - innerRadius, innerRadius * 2.0f, innerRadius * 2.0f);
 
@@ -97,8 +181,8 @@ public:
 
             // Pointer tick
             juce::Path dialTick;
-            dialTick.addRectangle(-1.2f, -innerRadius + 2.0f, 2.4f, innerRadius * 0.45f);
-            g.setColour(juce::Colour(ThemeConfig::kAccentCyanHex));
+            dialTick.addRectangle(-1.2f, -innerRadius + 1.5f, 2.4f, innerRadius * 0.45f);
+            g.setColour(thumbColour);
             g.fillPath(dialTick, juce::AffineTransform::rotation(toAngle).translated(center.x, center.y));
         }
     }
@@ -120,7 +204,7 @@ public:
             // Filled active track
             auto activeBounds = juce::Rectangle<float>(trackX, sliderPos, trackWidth, (float)y + height - 6.0f - sliderPos);
             juce::ColourGradient activeGrad(juce::Colour(ThemeConfig::kAccentBlueHex), trackX, (float)y + height,
-                                           juce::Colour(ThemeConfig::kAccentVioletHex), trackX, sliderPos, false);
+                                            juce::Colour(ThemeConfig::kAccentVioletHex), trackX, sliderPos, false);
             g.setGradientFill(activeGrad);
             g.fillRoundedRectangle(activeBounds, 2.5f);
 
@@ -131,7 +215,7 @@ public:
             auto thumbY = sliderPos - thumbHeight * 0.5f;
 
             juce::ColourGradient thumbGrad(juce::Colour(ThemeConfig::kSurfaceElevatedHex), thumbX, thumbY,
-                                          juce::Colour(ThemeConfig::kSurfaceHex), thumbX, thumbY + thumbHeight, false);
+                                           juce::Colour(ThemeConfig::kSurfaceHex), thumbX, thumbY + thumbHeight, false);
             g.setGradientFill(thumbGrad);
             g.fillRoundedRectangle(thumbX, thumbY, thumbWidth, thumbHeight, 3.0f);
 
