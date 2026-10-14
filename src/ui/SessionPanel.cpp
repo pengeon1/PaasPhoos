@@ -1,6 +1,7 @@
 #include "SessionPanel.h"
 #include "../network/StunClient.h"
 #include "../common/Typography.h"
+#include "../common/ThemeConfig.h"
 
 namespace paasphoos
 {
@@ -168,12 +169,16 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     jamCodeEditor.setMultiLine(false);
     jamCodeEditor.setReturnKeyStartsNewLine(false);
+    jamCodeEditor.setBorder(juce::BorderSize<int>(0));
     jamCodeEditor.setIndents(12, 0);
-    jamCodeEditor.setTextToShowWhenEmpty("Paste Band Jam Code (e.g. JAM-C0A8...)", juce::Colour(0xff6b7280));
+    jamCodeEditor.setTextToShowWhenEmpty("Paste Band Jam Code (e.g. JAM-C0A8...)", juce::Colour(ThemeConfig::kTextDimHex));
     jamCodeEditor.setFont(Typography::numeric(12.0f));
-    jamCodeEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff121318));
-    jamCodeEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xff38e1c6));
-    jamCodeEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff2d2f3d));
+    jamCodeEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    jamCodeEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+    jamCodeEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    jamCodeEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    jamCodeEditor.setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    jamCodeEditor.setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
     jamCodeEditor.onReturnKey = [this]()
     {
         executeJoinWithCode(jamCodeEditor.getText().trim());
@@ -206,6 +211,17 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     manualIpLabel.setFont(Typography::caption(11.0f));
     addChildComponent(manualIpLabel);
 
+    manualIpEditor.setMultiLine(false);
+    manualIpEditor.setReturnKeyStartsNewLine(false);
+    manualIpEditor.setBorder(juce::BorderSize<int>(0));
+    manualIpEditor.setIndents(8, 0);
+    manualIpEditor.setFont(Typography::numeric(12.0f));
+    manualIpEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    manualIpEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+    manualIpEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    manualIpEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    manualIpEditor.setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    manualIpEditor.setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
     manualIpEditor.setText("127.0.0.1");
     addChildComponent(manualIpEditor);
 
@@ -213,6 +229,17 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     manualPortLabel.setFont(Typography::caption(11.0f));
     addChildComponent(manualPortLabel);
 
+    manualPortEditor.setMultiLine(false);
+    manualPortEditor.setReturnKeyStartsNewLine(false);
+    manualPortEditor.setBorder(juce::BorderSize<int>(0));
+    manualPortEditor.setIndents(8, 0);
+    manualPortEditor.setFont(Typography::numeric(12.0f));
+    manualPortEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    manualPortEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+    manualPortEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    manualPortEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    manualPortEditor.setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    manualPortEditor.setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
     manualPortEditor.setText("44045");
     addChildComponent(manualPortEditor);
 

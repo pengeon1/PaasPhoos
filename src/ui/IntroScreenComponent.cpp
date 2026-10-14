@@ -133,6 +133,7 @@ IntroScreenComponent::IntroScreenComponent()
     nameEditor.setMultiLine(false);
     nameEditor.setReturnKeyStartsNewLine(false);
     nameEditor.setBorder(juce::BorderSize<int>(0));
+    nameEditor.setIndents(14, 0);
     nameEditor.setInputRestrictions(24);
     nameEditor.setTextToShowWhenEmpty("Enter your musician handle...", juce::Colour(ThemeConfig::kTextDimHex));
     nameEditor.setFont(Typography::body().withHeight(15.0f));
@@ -140,6 +141,8 @@ IntroScreenComponent::IntroScreenComponent()
     nameEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
     nameEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
     nameEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    nameEditor.setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    nameEditor.setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
     nameEditor.onReturnKey = [this]() { validateAndSubmit(); };
     nameEditor.onTextChange = [this]() { repaint(); };
     addChildComponent(nameEditor);
@@ -841,8 +844,7 @@ void IntroScreenComponent::resized()
         int inputY = subY + 28;
         int inputH = 38;
         nameEditor.setBounds(startX, inputY, contentW, inputH);
-        int topPad = (inputH - 17) / 2; // 10px
-        nameEditor.setIndents(14, topPad);
+        nameEditor.setIndents(14, 0);
 
         // Role Selection Chips row
         int chipY = inputY + inputH + 16;

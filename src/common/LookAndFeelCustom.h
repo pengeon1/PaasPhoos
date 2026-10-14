@@ -55,6 +55,9 @@ public:
         setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
         setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
         setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+        setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
+        setColour(juce::TextEditor::highlightedTextColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+        setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
     }
 
     // =========================================================================

@@ -1,5 +1,6 @@
 #include "RehearsalToolsPanel.h"
 #include "../common/Typography.h"
+#include "../common/ThemeConfig.h"
 
 namespace paasphoos
 {
@@ -86,8 +87,13 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
 
     songNotesEditor.setMultiLine(true);
     songNotesEditor.setReadOnly(true);
+    songNotesEditor.setBorder(juce::BorderSize<int>(0));
+    songNotesEditor.setIndents(8, 6);
     songNotesEditor.setFont(Typography::caption(11.0f));
-    songNotesEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff090a0d));
+    songNotesEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    songNotesEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextMutedHex));
+    songNotesEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    songNotesEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
     addAndMakeVisible(songNotesEditor);
 
     // 3. Chat & PTT
@@ -98,15 +104,27 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
 
     chatLogBox.setMultiLine(true);
     chatLogBox.setReadOnly(true);
+    chatLogBox.setBorder(juce::BorderSize<int>(0));
+    chatLogBox.setIndents(8, 6);
     chatLogBox.setFont(Typography::caption());
-    chatLogBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff090a0d));
+    chatLogBox.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    chatLogBox.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+    chatLogBox.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    chatLogBox.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
     addAndMakeVisible(chatLogBox);
 
     chatInputEditor.setMultiLine(false);
     chatInputEditor.setReturnKeyStartsNewLine(false);
+    chatInputEditor.setBorder(juce::BorderSize<int>(0));
     chatInputEditor.setIndents(10, 0);
-    chatInputEditor.setFont(Typography::body());
-    chatInputEditor.setTextToShowWhenEmpty("Type message...", juce::Colour(0xff64748b));
+    chatInputEditor.setFont(Typography::body().withHeight(13.0f));
+    chatInputEditor.setTextToShowWhenEmpty("Type message...", juce::Colour(ThemeConfig::kTextDimHex));
+    chatInputEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff0e1118));
+    chatInputEditor.setColour(juce::TextEditor::textColourId, juce::Colour(ThemeConfig::kTextPrimaryHex));
+    chatInputEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(ThemeConfig::kBorderSubtleHex));
+    chatInputEditor.setColour(juce::TextEditor::focusedOutlineColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    chatInputEditor.setColour(juce::CaretComponent::caretColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
+    chatInputEditor.setColour(juce::TextEditor::highlightColourId, juce::Colour(ThemeConfig::kAccentBlueHex).withAlpha(0.35f));
     chatInputEditor.onReturnKey = [this]()
     {
         sendChatButton.triggerClick();
@@ -281,7 +299,7 @@ void RehearsalToolsPanel::resized()
     chatLabel.setBounds(chatHeaderRow.removeFromLeft(70));
     pttButton.setBounds(chatHeaderRow.removeFromRight(90));
 
-    auto chatInputRow = colRight.removeFromBottom(22);
+    auto chatInputRow = colRight.removeFromBottom(28);
     chatInputEditor.setBounds(chatInputRow.removeFromLeft(chatInputRow.getWidth() - 60));
     chatInputRow.removeFromLeft(4);
     sendChatButton.setBounds(chatInputRow);
