@@ -78,8 +78,8 @@ void TunerComponent::paint(juce::Graphics& g)
 
     // Note name display
     auto noteArea = gaugeBounds.removeFromTop(55.0f);
-    juce::Colour noteColor = inTune ? juce::Colour(0xff10b981) :
-                             (std::abs(cents) <= 12.0f ? juce::Colour(0xffffaa33) : juce::Colour(0xffff5533));
+    juce::Colour noteColor = inTune ? juce::Colour(0xff38e1c6) :
+                             (std::abs(cents) <= 12.0f ? juce::Colour(0xff3da5ff) : juce::Colour(0xff7c5cff));
     g.setColour(noteColor);
     g.setFont(Typography::display(42.0f));
     g.drawText(noteName, noteArea, juce::Justification::centred);

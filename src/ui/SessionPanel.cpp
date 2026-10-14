@@ -14,23 +14,23 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     // Header & Badges
     headerLabel.setText("BAND SESSION & NETWORK", juce::dontSendNotification);
     headerLabel.setFont(Typography::h3());
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff7c5cff));
     addAndMakeVisible(headerLabel);
 
     bandCountBadge.setText("BAND: 1/6", juce::dontSendNotification);
     bandCountBadge.setFont(Typography::numeric(11.0f));
     bandCountBadge.setJustificationType(juce::Justification::centred);
-    bandCountBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e130c));
-    bandCountBadge.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
+    bandCountBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff161a28));
+    bandCountBadge.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(bandCountBadge);
 
     // Method Selector (Jam Code vs Direct IP)
     jamCodeModeButton.setButtonText("JAM CODE");
-    jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     jamCodeModeButton.onClick = [this]()
     {
         isDirectIpMode = false;
-        jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+        jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
         directIpModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
         resized();
     };
@@ -41,7 +41,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     directIpModeButton.onClick = [this]()
     {
         isDirectIpMode = true;
-        directIpModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+        directIpModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
         jamCodeModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
         resized();
     };
@@ -49,11 +49,11 @@ SessionPanel::SessionPanel(AudioEngine& engine)
 
     // WAN vs LAN Network Mode
     internetModeButton.setButtonText("Internet (STUN)");
-    internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     internetModeButton.onClick = [this]()
     {
         internetModeSelected = true;
-        internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+        internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
         lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
     };
     addAndMakeVisible(internetModeButton);
@@ -63,7 +63,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     lanModeButton.onClick = [this]()
     {
         internetModeSelected = false;
-        lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+        lanModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
         internetModeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181920));
     };
     addAndMakeVisible(lanModeButton);
@@ -71,11 +71,11 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     // ================= 1. JAM CODE HOST SECTION =================
     hostSectionLabel.setText("1. HOST A BAND REHEARSAL", juce::dontSendNotification);
     hostSectionLabel.setFont(Typography::labelCaps(11.0f));
-    hostSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
+    hostSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(hostSectionLabel);
 
     hostSessionButton.setButtonText("START HOSTING");
-    hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff993d00));
+    hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff6366f1));
     hostSessionButton.onClick = [this]()
     {
         bool isHosting = audioEngine.getLanDiscovery().isHosting();
@@ -84,7 +84,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
             audioEngine.getLanDiscovery().stop();
             audioEngine.getLanTransport().disconnect();
             hostSessionButton.setButtonText("START HOSTING");
-            hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff993d00));
+            hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff6366f1));
             jamCodeDisplayBadge.setText("JAM CODE: (Not Hosting)", juce::dontSendNotification);
             hostStatusLabel.setText("Hosting stopped.", juce::dontSendNotification);
             currentActiveJamCode = "";
@@ -139,7 +139,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     jamCodeDisplayBadge.setFont(Typography::numericLarge(13.0f));
     jamCodeDisplayBadge.setJustificationType(juce::Justification::centred);
     jamCodeDisplayBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff16171f));
-    jamCodeDisplayBadge.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    jamCodeDisplayBadge.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(jamCodeDisplayBadge);
 
     copyCodeButton.setButtonText("COPY CODE");
@@ -163,7 +163,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     // ================= 2. JAM CODE JOIN SECTION =================
     joinSectionLabel.setText("2. JOIN WITH JAM CODE", juce::dontSendNotification);
     joinSectionLabel.setFont(Typography::labelCaps(11.0f));
-    joinSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff9933));
+    joinSectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(joinSectionLabel);
 
     jamCodeEditor.setMultiLine(false);
@@ -172,7 +172,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     jamCodeEditor.setTextToShowWhenEmpty("Paste Band Jam Code (e.g. JAM-C0A8...)", juce::Colour(0xff6b7280));
     jamCodeEditor.setFont(Typography::numeric(12.0f));
     jamCodeEditor.setColour(juce::TextEditor::backgroundColourId, juce::Colour(0xff121318));
-    jamCodeEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xffffaa33));
+    jamCodeEditor.setColour(juce::TextEditor::textColourId, juce::Colour(0xff38e1c6));
     jamCodeEditor.setColour(juce::TextEditor::outlineColourId, juce::Colour(0xff2d2f3d));
     jamCodeEditor.onReturnKey = [this]()
     {
@@ -181,7 +181,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(jamCodeEditor);
 
     joinWithCodeButton.setButtonText("JOIN JAM");
-    joinWithCodeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    joinWithCodeButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     joinWithCodeButton.onClick = [this]()
     {
         executeJoinWithCode(jamCodeEditor.getText().trim());
@@ -217,7 +217,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addChildComponent(manualPortEditor);
 
     connectManualButton.setButtonText("CONNECT IP");
-    connectManualButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    connectManualButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     connectManualButton.onClick = [this]()
     {
         juce::String ip = manualIpEditor.getText().trim();
@@ -232,7 +232,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addChildComponent(discoveredSessionsCombo);
 
     joinDiscoveredButton.setButtonText("JOIN SELECTED");
-    joinDiscoveredButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    joinDiscoveredButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     joinDiscoveredButton.onClick = [this]()
     {
         auto sessions = audioEngine.getLanDiscovery().getDiscoveredSessions();
@@ -268,7 +268,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
         audioEngine.getLanDiscovery().stop();
         audioEngine.getLanTransport().disconnect();
         hostSessionButton.setButtonText("START HOSTING");
-        hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff993d00));
+        hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff6366f1));
         hostStatusLabel.setText("Disconnected.", juce::dontSendNotification);
         jamCodeDisplayBadge.setText("JAM CODE: (Not Hosting)", juce::dontSendNotification);
         currentActiveJamCode = "";
@@ -294,22 +294,22 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     // Live Network Diagnostics HUD (Tabular figures that never jitter)
     hudPingLabel.setText("Ping: -- ms", juce::dontSendNotification);
     hudPingLabel.setFont(Typography::numeric(11.0f));
-    hudPingLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    hudPingLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(hudPingLabel);
 
     hudJitterLabel.setText("Jitter: -- ms", juce::dontSendNotification);
     hudJitterLabel.setFont(Typography::numeric(11.0f));
-    hudJitterLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    hudJitterLabel.setColour(juce::Label::textColourId, juce::Colour(0xff7c5cff));
     addAndMakeVisible(hudJitterLabel);
 
     hudLossLabel.setText("Loss: 0.0%", juce::dontSendNotification);
     hudLossLabel.setFont(Typography::numeric(11.0f));
-    hudLossLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    hudLossLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(hudLossLabel);
 
     hudTotalLatencyLabel.setText("Total Ear-to-Ear: -- ms", juce::dontSendNotification);
     hudTotalLatencyLabel.setFont(Typography::numeric(11.0f));
-    hudTotalLatencyLabel.setColour(juce::Label::textColourId, juce::Colour(0xffff8800));
+    hudTotalLatencyLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(hudTotalLatencyLabel);
 
     healthStatusPill.setText("EXCELLENT", juce::dontSendNotification);
@@ -442,8 +442,8 @@ void SessionPanel::updateNetworkStatsDisplay()
     else if (role == SessionRole::HOST)
     {
         sessionStatusBadge.setText("HOSTING: WAITING FOR PEERS", juce::dontSendNotification);
-        sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff451a03));
-        sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+        sessionStatusBadge.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e1b4b));
+        sessionStatusBadge.setColour(juce::Label::textColourId, juce::Colour(0xffa5b4fc));
     }
     else
     {
@@ -488,15 +488,17 @@ void SessionPanel::updateNetworkStatsDisplay()
 
 void SessionPanel::paint(juce::Graphics& g)
 {
-    // Sleek Obsidian Black surface with warm orange trim
+    // Sleek Obsidian Black surface with blue-violet trim
     g.fillAll(juce::Colour(0xff0c0d11));
 
     // Outer subtle border
     g.setColour(juce::Colour(0xff22242e));
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), 6.0f, 1.0f);
 
-    // Glowing Orange Accent strip along top
-    g.setColour(juce::Colour(0xffff6600));
+    // Glowing Blue-Violet Accent strip along top
+    juce::ColourGradient topStripe(juce::Colour(0xff7c5cff), 0.0f, 0.0f,
+                                   juce::Colour(0xff3da5ff), (float)getWidth(), 0.0f, false);
+    g.setGradientFill(topStripe);
     g.fillRoundedRectangle(2.0f, 2.0f, (float)getWidth() - 4.0f, 2.0f, 1.0f);
 }
 

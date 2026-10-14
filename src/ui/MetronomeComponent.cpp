@@ -15,7 +15,7 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
     // Play / Stop button
     playButton.setButtonText("START CLICK");
     playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff181a22));
-    playButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffff6600));
+    playButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xff7c5cff));
     playButton.setClickingTogglesState(true);
     playButton.onClick = [this]()
     {
@@ -30,7 +30,7 @@ MetronomeComponent::MetronomeComponent(AudioEngine& engine)
     bpmDisplayLabel.setFont(Typography::numericLarge(16.0f));
     bpmDisplayLabel.setJustificationType(juce::Justification::centred);
     bpmDisplayLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff090a0d));
-    bpmDisplayLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    bpmDisplayLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(bpmDisplayLabel);
 
     // Minus / Plus buttons
@@ -178,7 +178,7 @@ void MetronomeComponent::paint(juce::Graphics& g)
         juce::Colour dotColor;
         if (isActiveBeat)
         {
-            dotColor = isDownbeat ? juce::Colour(0xffffaa33) : juce::Colour(0xffff6600);
+            dotColor = isDownbeat ? juce::Colour(0xff38e1c6) : juce::Colour(0xff7c5cff);
         }
         else
         {

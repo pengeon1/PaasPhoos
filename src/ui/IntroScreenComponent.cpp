@@ -442,10 +442,10 @@ void IntroScreenComponent::updateCachedAuroraMesh(int width, int height)
     g.setGradientFill(bGrad);
     g.fillAll();
 
-    // Node 3: Subtle warm accent (#FFB547) at bottom center
+    // Node 3: Subtle cyan accent (#38E1C6) at bottom center
     float mX = cx;
     float mY = cy + (float)cacheH * 0.26f;
-    juce::ColourGradient mGrad(juce::Colour(ThemeConfig::kAccentAmberHex).withAlpha(0.09f), mX, mY,
+    juce::ColourGradient mGrad(juce::Colour(ThemeConfig::kAccentCyanHex).withAlpha(0.09f), mX, mY,
                                juce::Colour(ThemeConfig::kBaseBackgroundHex).withAlpha(0.0f), mX, mY + (float)cacheH * 0.35f, true);
     g.setGradientFill(mGrad);
     g.fillAll();

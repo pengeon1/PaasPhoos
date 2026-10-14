@@ -20,7 +20,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
 
     headerLabel.setText("REHEARSAL TOOLS, SETLIST & CHAT (M7)", juce::dontSendNotification);
     headerLabel.setFont(Typography::h3());
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(headerLabel);
 
     // 1. Multitrack Recorder
@@ -41,7 +41,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
             if (recorder.startRecording(dest, audioEngine.getCurrentSampleRate()))
             {
                 recordButton.setButtonText("STOP REC");
-                recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+                recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffdc2626));
             }
         }
     };
@@ -55,7 +55,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     // 2. Setlist
     setlistLabel.setText("Setlist:", juce::dontSendNotification);
     setlistLabel.setFont(Typography::labelCaps(11.0f));
-    setlistLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    setlistLabel.setColour(juce::Label::textColourId, juce::Colour(0xff7c5cff));
     addAndMakeVisible(setlistLabel);
 
     songCombo.onChange = [this]()
@@ -81,7 +81,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     addAndMakeVisible(nextSongButton);
 
     songInfoLabel.setFont(Typography::numeric(11.0f));
-    songInfoLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    songInfoLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(songInfoLabel);
 
     songNotesEditor.setMultiLine(true);
@@ -93,7 +93,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     // 3. Chat & PTT
     chatLabel.setText("Band Chat:", juce::dontSendNotification);
     chatLabel.setFont(Typography::labelCaps(11.0f));
-    chatLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    chatLabel.setColour(juce::Label::textColourId, juce::Colour(0xff7c5cff));
     addAndMakeVisible(chatLabel);
 
     chatLogBox.setMultiLine(true);
@@ -114,7 +114,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     addAndMakeVisible(chatInputEditor);
 
     sendChatButton.setButtonText("SEND");
-    sendChatButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    sendChatButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     sendChatButton.onClick = [this]()
     {
         auto txt = chatInputEditor.getText().trim();
@@ -132,7 +132,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
     {
         bool ptt = !chatTalkback.isPushToTalkActive();
         chatTalkback.setPushToTalkActive(ptt);
-        pttButton.setColour(juce::TextButton::buttonColourId, ptt ? juce::Colour(0xffff6600) : juce::Colour(0xff22252e));
+        pttButton.setColour(juce::TextButton::buttonColourId, ptt ? juce::Colour(0xff3da5ff) : juce::Colour(0xff22252e));
     };
     addAndMakeVisible(pttButton);
 

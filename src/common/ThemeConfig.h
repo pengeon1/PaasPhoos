@@ -30,16 +30,17 @@ struct ThemeConfig
     static constexpr uint32_t kAccentBlueHex        = 0xff3da5ff; // Electric Blue #3DA5FF
     static constexpr uint32_t kAccentCyanHex        = 0xff38e1c6; // Cyan #38E1C6
     static constexpr uint32_t kAccentMagentaHex     = 0xffe040fb; // Magenta glow
-    static constexpr uint32_t kAccentAmberHex       = 0xffffb547; // Amber highlight
+    static constexpr uint32_t kAccentAmberHex       = 0xffa78bfa; // Soft Violet #A78BFA
 
     // Role Colors
     static constexpr uint32_t kRoleVocalsHex        = 0xffff5c93; // Pink #FF5C93
-    static constexpr uint32_t kRoleKeysHex          = 0xffffb547; // Amber #FFB547
-    static constexpr uint32_t kRoleGuitar1Hex       = 0xff3da5ff; // Blue #3DA5FF
-    static constexpr uint32_t kRoleGuitar2Hex       = 0xff3ddc84; // Green #3DDC84
-    static constexpr uint32_t kRoleGuitar3Hex       = 0xffa78bfa; // Violet #A78BFA
-    static constexpr uint32_t kRoleDrumsHex         = 0xffff7a45; // Orange #FF7A45
+    static constexpr uint32_t kRoleKeysHex          = 0xff60a5fa; // Sky Blue #60A5FA
+    static constexpr uint32_t kRoleGuitar1Hex       = 0xff3da5ff; // Electric Blue #3DA5FF
+    static constexpr uint32_t kRoleGuitar2Hex       = 0xff3ddc84; // Emerald #3DDC84
+    static constexpr uint32_t kRoleGuitar3Hex       = 0xffa78bfa; // Lavender Violet #A78BFA
+    static constexpr uint32_t kRoleDrumsHex         = 0xff818cf8; // Indigo #818CF8
     static constexpr uint32_t kRoleOtherHex         = 0xff38e1c6; // Cyan #38E1C6
+
 
     // Juce Colour accessors
     static juce::Colour getBaseBackground()    { return juce::Colour(kBaseBackgroundHex); }

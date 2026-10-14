@@ -446,7 +446,16 @@ void MainComponent::exportScreenshots(const juce::File& outputDir)
         captureComponentAtScale(*this, dpiScales[d], outputDir.getChildFile(juce::String("05_drum_machine_") + dpiNames[d] + ".png"));
     }
 
+    // 4b. Rehearsal Tools, Setlist & Chat view
+    switchView(3);
+    resized();
+    for (int d = 0; d < 3; ++d)
+    {
+        captureComponentAtScale(*this, dpiScales[d], outputDir.getChildFile(juce::String("05b_rehearsal_setlist_chat_") + dpiNames[d] + ".png"));
+    }
+
     // 5. Latency Panel & HUD
+
     for (int d = 0; d < 3; ++d)
     {
         float scale = dpiScales[d];

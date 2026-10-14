@@ -12,7 +12,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     headerLabel.setText("DRUM MACHINE & SYNTH ENGINE (M5)", juce::dontSendNotification);
     headerLabel.setFont(Typography::h3());
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(headerLabel);
 
     enableToggle.setButtonText("DRUMS ON");
@@ -26,19 +26,19 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
     addAndMakeVisible(enableToggle);
 
     playButton.setButtonText("PLAY");
-    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    playButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     playButton.onClick = [this]()
     {
         bool playing = !drumSequencer.getPlaying();
         drumSequencer.setPlaying(playing);
         enableToggle.setToggleState(playing, juce::dontSendNotification);
         playButton.setButtonText(playing ? "PAUSE" : "PLAY");
-        playButton.setColour(juce::TextButton::buttonColourId, playing ? juce::Colour(0xffcc4400) : juce::Colour(0xffff6600));
+        playButton.setColour(juce::TextButton::buttonColourId, playing ? juce::Colour(0xff5b21b6) : juce::Colour(0xff7c5cff));
     };
     addAndMakeVisible(playButton);
 
     fillButton.setButtonText("FILL");
-    fillButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff7700));
+    fillButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff3da5ff));
     fillButton.onClick = [this]() { drumSequencer.triggerFill(); };
     addAndMakeVisible(fillButton);
 
@@ -115,7 +115,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
 
     // Export MIDI
     exportMidiButton.setButtonText("EXPORT MIDI");
-    exportMidiButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    exportMidiButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     exportMidiButton.onClick = [this]()
     {
         juce::File exportFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory).getChildFile("PaasPhoos_Drums.mid");
@@ -157,7 +157,7 @@ DrumPanel::DrumPanel(DrumEngine& engine, DrumSequencer& sequencer)
             btn->setButtonText("");
             btn->setClickingTogglesState(true);
             btn->setColour(juce::TextButton::buttonColourId, (s % 4 == 0) ? juce::Colour(0xff1c1e26) : juce::Colour(0xff101116));
-            btn->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffff6600)); // Flame Orange LED
+            btn->setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xff7c5cff)); // Electric Violet LED
             btn->onClick = [this, t, s]()
             {
                 drumSequencer.toggleStep(t, s);
@@ -222,7 +222,7 @@ void DrumPanel::paint(juce::Graphics& g)
         auto firstBtn = stepButtons[0][lastDrawnStep]->getBounds();
         auto lastBtn = stepButtons[DrumEngine::NUM_VOICES - 1][lastDrawnStep]->getBounds();
 
-        g.setColour(juce::Colour(0x55ff6600));
+        g.setColour(juce::Colour(0x557c5cff));
         g.fillRoundedRectangle((float)firstBtn.getX() - 1, (float)firstBtn.getY() - 2,
                                (float)firstBtn.getWidth() + 2, (float)(lastBtn.getBottom() - firstBtn.getY() + 4), 2.0f);
     }

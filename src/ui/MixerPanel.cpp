@@ -91,8 +91,9 @@ ChannelStripComponent::ChannelStripComponent(const juce::String& channelName,
         // Solo Button
         soloButton.setButtonText("S");
         soloButton.setClickingTogglesState(true);
-        soloButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(ThemeConfig::kAccentAmberHex));
+        soloButton.setColour(juce::TextButton::buttonOnColourId, juce::Colour(ThemeConfig::kAccentBlueHex));
         soloButton.onClick = [this]()
+
         {
             channelSettings.solo.store(soloButton.getToggleState(), std::memory_order_relaxed);
         };

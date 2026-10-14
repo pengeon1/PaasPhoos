@@ -13,7 +13,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
 
     headerLabel.setText("GUITAR & VOCAL FX RACK (DSP + VST3 HOST)", juce::dontSendNotification);
     headerLabel.setFont(Typography::h3());
-    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    headerLabel.setColour(juce::Label::textColourId, juce::Colour(0xff3da5ff));
     addAndMakeVisible(headerLabel);
 
     masterFxToggle.setButtonText("FX ON");
@@ -62,39 +62,39 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     };
 
     // ==========================================
-    // Module 1: Noise Gate (Amber/Coral)
+    // Module 1: Noise Gate (Deep Violet / Indigo)
     // ==========================================
-    const juce::Colour kGateCol(0xffff7a45);
+    const juce::Colour kGateCol(0xff6366f1);
     gateToggle.setButtonText("Gate");
     gateToggle.setToggleState(true, juce::dontSendNotification);
     gateToggle.onStateChange = [this]() { fxChain.setGateEnabled(gateToggle.getToggleState()); };
     addAndMakeVisible(gateToggle);
 
     setupLabel(gateThreshLabel, "THRESH", kGateCol.brighter(0.2f));
-    setupKnob(gateThreshSlider, kGateCol, juce::Colour(0xffffb547));
+    setupKnob(gateThreshSlider, kGateCol, juce::Colour(0xffa5b4fc));
     gateThreshSlider.setRange(-70.0, -10.0, 1.0);
     gateThreshSlider.setValue(-48.0, juce::dontSendNotification);
     gateThreshSlider.textFromValueFunction = [](double v) { return juce::String((int)v) + " dB"; };
     gateThreshSlider.onValueChange = [this]() { fxChain.setGateThreshold((float)gateThreshSlider.getValue()); };
 
     // ==========================================
-    // Module 2: Overdrive (Flame Amber)
+    // Module 2: Overdrive (Electric Royal Blue)
     // ==========================================
-    const juce::Colour kDriveCol(0xffff9900);
+    const juce::Colour kDriveCol(0xff2563eb);
     driveToggle.setButtonText("Drive");
     driveToggle.setToggleState(false, juce::dontSendNotification);
     driveToggle.onStateChange = [this]() { fxChain.setDriveEnabled(driveToggle.getToggleState()); };
     addAndMakeVisible(driveToggle);
 
     setupLabel(driveAmountLabel, "DRIVE", kDriveCol.brighter(0.2f));
-    setupKnob(driveAmountSlider, kDriveCol, juce::Colour(0xffffcc00));
+    setupKnob(driveAmountSlider, kDriveCol, juce::Colour(0xff60a5fa));
     driveAmountSlider.setRange(0.0, 10.0, 0.1);
     driveAmountSlider.setValue(3.5, juce::dontSendNotification);
     driveAmountSlider.textFromValueFunction = [](double v) { return juce::String(v, 1); };
     driveAmountSlider.onValueChange = [this]() { fxChain.setDriveAmount((float)driveAmountSlider.getValue()); };
 
     setupLabel(driveToneLabel, "TONE", kDriveCol.brighter(0.2f));
-    setupKnob(driveToneSlider, juce::Colour(0xffff7700), juce::Colour(0xffffaa33));
+    setupKnob(driveToneSlider, juce::Colour(0xff1d4ed8), juce::Colour(0xff93c5fd));
     driveToneSlider.setRange(0.0, 1.0, 0.05);
     driveToneSlider.setValue(0.6, juce::dontSendNotification);
     driveToneSlider.textFromValueFunction = [](double v) { return juce::String((int)(v * 100)) + "%"; };
@@ -183,7 +183,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     // ==========================================
     vst3SectionLabel.setText("VST3 HOST:", juce::dontSendNotification);
     vst3SectionLabel.setFont(Typography::labelCaps(11.0f));
-    vst3SectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xffffaa33));
+    vst3SectionLabel.setColour(juce::Label::textColourId, juce::Colour(0xff7c5cff));
     addAndMakeVisible(vst3SectionLabel);
 
     scanPluginsButton.setButtonText("SCAN VST3");
@@ -195,7 +195,7 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     addAndMakeVisible(pluginListCombo);
 
     loadPluginButton.setButtonText("LOAD");
-    loadPluginButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffff6600));
+    loadPluginButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
     loadPluginButton.onClick = [this]()
     {
         int idx = pluginListCombo.getSelectedId() - 1;
@@ -277,11 +277,11 @@ void EffectsPanel::paint(juce::Graphics& g)
         g.fillRoundedRectangle(cardRect.withHeight(18.0f), 6.0f);
     };
 
-    drawModuleCard(0.0f, 1.0f, juce::Colour(0xffff7a45)); // Gate
-    drawModuleCard(1.0f, 2.0f, juce::Colour(0xffff9900)); // Drive
-    drawModuleCard(3.0f, 2.0f, juce::Colour(0xff3da5ff)); // Comp
-    drawModuleCard(5.0f, 4.0f, juce::Colour(0xff3ddc84)); // EQ
-    drawModuleCard(9.0f, 1.0f, juce::Colour(0xffe040fb)); // Reverb
+    drawModuleCard(0.0f, 1.0f, juce::Colour(0xff6366f1)); // Gate (Indigo)
+    drawModuleCard(1.0f, 2.0f, juce::Colour(0xff2563eb)); // Drive (Royal Blue)
+    drawModuleCard(3.0f, 2.0f, juce::Colour(0xff3da5ff)); // Comp (Electric Blue)
+    drawModuleCard(5.0f, 4.0f, juce::Colour(0xff38e1c6)); // EQ (Cyan / Teal)
+    drawModuleCard(9.0f, 1.0f, juce::Colour(0xffc084fc)); // Reverb (Purple / Magenta)
 }
 
 void EffectsPanel::resized()
