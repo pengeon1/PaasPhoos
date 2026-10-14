@@ -45,7 +45,26 @@ private:
     juce::Label subtitleLabel;
     juce::Label modeBadgeLabel;
     juce::Label cpuBadgeLabel;
-    juce::TextButton profileButton;
+
+    // Musician Profile Button (Circular Avatar Orb + Musician Username)
+    class CircularProfileButton : public juce::Button
+    {
+    public:
+        CircularProfileButton();
+        void setProfile(const juce::String& name, const juce::String& role, juce::Colour color);
+        juce::Rectangle<float> getAvatarOrbBoundsInParent() const;
+        void paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
+
+    private:
+        void drawAvatarCircle(juce::Graphics& g, const juce::Rectangle<float>& orbBounds,
+                              const juce::String& name, juce::Colour col, bool highlighted, bool isDown);
+
+        juce::String musicianName{"Musician"};
+        juce::String instrumentRole{"Vocals"};
+        juce::Colour roleColor{juce::Colour(ThemeConfig::kAccentVioletHex)};
+    };
+
+    CircularProfileButton profileButton;
     juce::Colour currentMusicianRoleColor;
 
     // Navigation Buttons

@@ -42,6 +42,9 @@ public:
     // (name, role, roleColor, avatarOrbScreenPosition)
     std::function<void(const juce::String& name, const juce::String& role, juce::Colour roleColor, juce::Rectangle<float> orbTargetRect)> onStudioEntered;
 
+    // Custom target bounds for avatar orb flight (lands on header profile circle)
+    void setFlyingOrbTargetBounds(const juce::Rectangle<float>& target) { customFlyingOrbTargetBounds = target; }
+
     // Standalone preview mode configuration
     void setPreviewMode(bool preview) { isPreviewMode = preview; }
     bool isPreviewActive() const { return isPreviewMode; }
@@ -93,6 +96,7 @@ private:
     float transitionProgress{0.0f};
     juce::Rectangle<float> flyingOrbCurrentBounds;
     juce::Rectangle<float> flyingOrbTargetBounds;
+    juce::Rectangle<float> customFlyingOrbTargetBounds;
 
     // Fast off-screen pre-rendered background cache (zero CPU stutter)
     juce::Image cachedAuroraMesh;

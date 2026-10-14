@@ -315,8 +315,17 @@ void IntroScreenComponent::validateAndSubmit()
     auto cardArea = getLocalBounds().getCentre().toFloat();
     flyingOrbCurrentBounds = juce::Rectangle<float>(cardArea.x - 30.0f, cardArea.y - 120.0f, 60.0f, 60.0f);
 
-    // Target position in header (top right profile button)
-    flyingOrbTargetBounds = juce::Rectangle<float>((float)getWidth() - 80.0f, 10.0f, 34.0f, 34.0f);
+    // Target position in header (top right circular avatar profile button)
+    if (!customFlyingOrbTargetBounds.isEmpty())
+    {
+        flyingOrbTargetBounds = customFlyingOrbTargetBounds;
+    }
+    else
+    {
+        float orbSize = 34.0f;
+        float rightMargin = 14.0f;
+        flyingOrbTargetBounds = juce::Rectangle<float>((float)getWidth() - rightMargin - orbSize, 10.0f, orbSize, orbSize);
+    }
 }
 
 juce::String IntroScreenComponent::getMusicianName() const
@@ -878,7 +887,7 @@ juce::Image IntroScreenComponent::captureFrameAtTime(float timestampSeconds, int
         enterButton.setVisible(false);
         skipButton.setVisible(true);
     }
-    else
+    else if (timestampSeconds < totalIntroDuration + 1.0f)
     {
         currentState = State::NameInputScreen;
         elapsedTime = timestampSeconds;
@@ -890,6 +899,26 @@ juce::Image IntroScreenComponent::captureFrameAtTime(float timestampSeconds, int
         for (auto& btn : roleButtons)
             btn->setVisible(true);
         enterButton.setVisible(true);
+    }
+    else
+    {
+        currentState = State::TransitioningToApp;
+        transitionProgress = juce::jlimit(0.0f, 1.0f, timestampSeconds - (totalIntroDuration + 1.0f));
+
+        cardTitleLabel.setVisible(false);
+        cardSubtitleLabel.setVisible(false);
+        nameEditor.setVisible(false);
+        for (auto& btn : roleButtons)
+            btn->setVisible(false);
+        enterButton.setVisible(false);
+        skipButton.setVisible(false);
+
+        auto cardArea = getLocalBounds().getCentre().toFloat();
+        flyingOrbCurrentBounds = juce::Rectangle<float>(cardArea.x - 30.0f, cardArea.y - 120.0f, 60.0f, 60.0f);
+        if (!customFlyingOrbTargetBounds.isEmpty())
+            flyingOrbTargetBounds = customFlyingOrbTargetBounds;
+        else
+            flyingOrbTargetBounds = juce::Rectangle<float>((float)width - 48.0f, 10.0f, 34.0f, 34.0f);
     }
 
     resized();

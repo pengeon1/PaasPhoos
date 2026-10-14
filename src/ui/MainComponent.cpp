@@ -3,6 +3,122 @@
 namespace paasphoos
 {
 
+//==============================================================================
+// CircularProfileButton Implementation
+//==============================================================================
+MainComponent::CircularProfileButton::CircularProfileButton()
+    : juce::Button("MusicianProfileButton")
+{
+    setMouseCursor(juce::MouseCursor::PointingHandCursor);
+}
+
+void MainComponent::CircularProfileButton::setProfile(const juce::String& name, const juce::String& role, juce::Colour color)
+{
+    musicianName = name.trim().isEmpty() ? "Musician" : name.trim();
+    instrumentRole = role.trim().isEmpty() ? "Vocals" : role.trim();
+    roleColor = color;
+    setTooltip("Musician Profile: " + musicianName + " (" + instrumentRole + ")\nClick to change name or instrument");
+    repaint();
+}
+
+juce::Rectangle<float> MainComponent::CircularProfileButton::getAvatarOrbBoundsInParent() const
+{
+    auto b = getBounds().toFloat();
+    float orbSize = 34.0f;
+    float orbX = b.getRight() - orbSize - 1.0f;
+    float orbY = b.getY() + (b.getHeight() - orbSize) * 0.5f;
+    return juce::Rectangle<float>(orbX, orbY, orbSize, orbSize);
+}
+
+void MainComponent::CircularProfileButton::paintButton(juce::Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    auto bounds = getLocalBounds().toFloat();
+    float orbSize = 34.0f;
+
+    // The circular avatar orb is placed at the far right
+    auto orbBounds = juce::Rectangle<float>(bounds.getRight() - orbSize - 1.0f,
+                                            bounds.getY() + (bounds.getHeight() - orbSize) * 0.5f,
+                                            orbSize, orbSize);
+
+    // Text area is to the left of the circle
+    auto textArea = juce::Rectangle<float>(6.0f, bounds.getY(),
+                                           bounds.getWidth() - orbSize - 14.0f, bounds.getHeight());
+
+    // Sleek glass pill container background
+    auto pillBounds = bounds.reduced(1.0f);
+    float cornerRadius = pillBounds.getHeight() * 0.5f;
+
+    float bgAlpha = shouldDrawButtonAsDown ? 0.90f : (shouldDrawButtonAsHighlighted ? 0.75f : 0.50f);
+    g.setColour(juce::Colour(0xff121520).withAlpha(bgAlpha));
+    g.fillRoundedRectangle(pillBounds, cornerRadius);
+
+    float borderAlpha = shouldDrawButtonAsHighlighted ? 0.65f : 0.30f;
+    auto borderCol = shouldDrawButtonAsHighlighted ? juce::Colour(ThemeConfig::kAccentVioletHex)
+                                                   : juce::Colour(ThemeConfig::kBorderSubtleHex);
+    g.setColour(borderCol.withAlpha(borderAlpha));
+    g.drawRoundedRectangle(pillBounds, cornerRadius, 1.2f);
+
+    // Draw Musician Name (upper line) & Instrument Role (lower line)
+    float midY = textArea.getCentreY();
+    auto nameBounds = juce::Rectangle<float>(textArea.getX(), midY - 15.0f, textArea.getWidth(), 16.0f);
+    auto roleBounds = juce::Rectangle<float>(textArea.getX(), midY + 1.0f, textArea.getWidth(), 13.0f);
+
+    g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex));
+    g.setFont(Typography::h2().withHeight(12.5f));
+    g.drawText(musicianName, nameBounds, juce::Justification::centredRight, true);
+
+    g.setColour(roleColor);
+    g.setFont(Typography::labelCaps(9.5f));
+    g.drawText(instrumentRole.toUpperCase(), roleBounds, juce::Justification::centredRight, false);
+
+    // Draw Avatar Circle Orb
+    drawAvatarCircle(g, orbBounds, musicianName, roleColor, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+}
+
+void MainComponent::CircularProfileButton::drawAvatarCircle(juce::Graphics& g, const juce::Rectangle<float>& orbBounds,
+                                                            const juce::String& name, juce::Colour col, bool highlighted, bool isDown)
+{
+    if (orbBounds.isEmpty()) return;
+
+    // Color hash deterministic variation matching IntroScreenComponent
+    uint32_t hash = 5381;
+    for (int i = 0; i < name.length(); ++i)
+        hash = ((hash << 5) + hash) + (uint32_t)name[i];
+
+    auto c1 = col;
+    auto c2 = juce::Colour(ThemeConfig::kAccentVioletHex);
+    if ((hash & 1) == 1)
+        c2 = juce::Colour(ThemeConfig::kAccentBlueHex);
+
+    // Glowing Aura
+    float auraAlpha = isDown ? 0.45f : (highlighted ? 0.35f : 0.20f);
+    float auraSpread = highlighted ? 5.5f : 3.0f;
+    g.setColour(c1.withAlpha(auraAlpha));
+    g.fillEllipse(orbBounds.expanded(auraSpread));
+
+    // Orb Body Gradient
+    juce::ColourGradient orbGrad(c1, orbBounds.getX(), orbBounds.getY(),
+                                 c2, orbBounds.getRight(), orbBounds.getBottom(), false);
+    g.setGradientFill(orbGrad);
+    g.fillEllipse(orbBounds);
+
+    // Rim Highlight
+    float rimAlpha = highlighted ? 0.60f : 0.35f;
+    g.setColour(juce::Colour(0xffffffff).withAlpha(rimAlpha));
+    g.drawEllipse(orbBounds, 1.2f);
+
+    // Initial Letter in center
+    auto initial = name.trim().substring(0, 1).toUpperCase();
+    if (initial.isEmpty()) initial = "P";
+
+    g.setColour(juce::Colour(ThemeConfig::kTextPrimaryHex));
+    g.setFont(Typography::display(orbBounds.getHeight() * 0.44f));
+    g.drawText(initial, orbBounds, juce::Justification::centred, false);
+}
+
+//==============================================================================
+// MainComponent Implementation
+//==============================================================================
 MainComponent::MainComponent(AudioEngine& engine, bool introPreviewMode)
     : audioEngine(engine),
       isIntroPreviewMode(introPreviewMode),
@@ -125,9 +241,7 @@ void MainComponent::updateProfileBadge()
 {
     auto name = introScreen.getMusicianName();
     auto role = introScreen.getInstrumentRole();
-    profileButton.setButtonText(name.toUpperCase() + "  [" + role + "]");
-    profileButton.setColour(juce::TextButton::buttonColourId, juce::Colour(ThemeConfig::kSurfaceHex));
-    profileButton.setColour(juce::TextButton::textColourOffId, currentMusicianRoleColor);
+    profileButton.setProfile(name, role, currentMusicianRoleColor);
     repaint();
 }
 
@@ -301,11 +415,19 @@ void MainComponent::resized()
     logoWordmark.setBounds(titleArea.removeFromTop(24));
     subtitleLabel.setBounds(titleArea);
 
-    cpuBadgeLabel.setBounds(headerArea.removeFromRight(110).reduced(0, 4));
+    // Far Top Right: Musician Profile Button (Circular Avatar Orb + Musician Username)
+    profileButton.setBounds(headerArea.removeFromRight(175).reduced(0, 3));
+    headerArea.removeFromRight(10);
+
+    // Telemetry: CPU badge
+    cpuBadgeLabel.setBounds(headerArea.removeFromRight(100).reduced(0, 4));
     headerArea.removeFromRight(6);
-    modeBadgeLabel.setBounds(headerArea.removeFromRight(190).reduced(0, 4));
-    headerArea.removeFromRight(6);
-    profileButton.setBounds(headerArea.removeFromRight(220).reduced(0, 4));
+
+    // Status: Studio Jam Engine mode badge
+    modeBadgeLabel.setBounds(headerArea.removeFromRight(185).reduced(0, 4));
+
+    // Keep intro screen flying orb landing position in sync with circular avatar
+    introScreen.setFlyingOrbTargetBounds(profileButton.getAvatarOrbBoundsInParent());
 
     area.reduce(10, 4);
 
@@ -417,9 +539,18 @@ void MainComponent::exportScreenshots(const juce::File& outputDir)
         if (scale != 1.0f)
             nameImg = nameImg.rescaled(juce::roundToInt(baseW * scale), juce::roundToInt(baseH * scale), juce::Graphics::highResamplingQuality);
         saveImage(nameImg, outputDir.getChildFile(juce::String("02_name_screen_") + dpiNames[d] + ".png"));
+
+        // Avatar orb flying toward top right profile position
+        auto flightImg = introScreen.captureFrameAtTime(ThemeConfig::kIntroTotalDurationFirstRun + 1.55f, baseW, baseH);
+        if (scale != 1.0f)
+            flightImg = flightImg.rescaled(juce::roundToInt(baseW * scale), juce::roundToInt(baseH * scale), juce::Graphics::highResamplingQuality);
+        saveImage(flightImg, outputDir.getChildFile(juce::String("02b_avatar_flying_to_top_right_") + dpiNames[d] + ".png"));
     }
 
     introScreen.setVisible(false);
+
+    // Set sample profile with custom name & role for app screenshots
+    profileButton.setProfile("Piyush", "Vocals", ThemeConfig::getRoleColor(0));
 
     // 2. Main Mixer with 6 channels
     mixerPanel.populateMockBandChannels();
