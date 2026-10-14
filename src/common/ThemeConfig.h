@@ -29,14 +29,14 @@ struct ThemeConfig
     static constexpr uint32_t kAccentVioletHex      = 0xff7c5cff; // Violet #7C5CFF
     static constexpr uint32_t kAccentBlueHex        = 0xff3da5ff; // Electric Blue #3DA5FF
     static constexpr uint32_t kAccentCyanHex        = 0xff38e1c6; // Cyan #38E1C6
-    static constexpr uint32_t kAccentMagentaHex     = 0xffe040fb; // Magenta glow
+    static constexpr uint32_t kAccentMagentaHex     = 0xffc084fc; // Soft Violet #C084FC
     static constexpr uint32_t kAccentAmberHex       = 0xffa78bfa; // Soft Violet #A78BFA
 
-    // Role Colors
-    static constexpr uint32_t kRoleVocalsHex        = 0xffff5c93; // Pink #FF5C93
+    // Role Colors (Strictly Blue - Violet - Cyan Palette)
+    static constexpr uint32_t kRoleVocalsHex        = 0xff8b5cf6; // Electric Violet #8B5CF6
     static constexpr uint32_t kRoleKeysHex          = 0xff60a5fa; // Sky Blue #60A5FA
     static constexpr uint32_t kRoleGuitar1Hex       = 0xff3da5ff; // Electric Blue #3DA5FF
-    static constexpr uint32_t kRoleGuitar2Hex       = 0xff3ddc84; // Emerald #3DDC84
+    static constexpr uint32_t kRoleGuitar2Hex       = 0xff6366f1; // Deep Indigo #6366F1
     static constexpr uint32_t kRoleGuitar3Hex       = 0xffa78bfa; // Lavender Violet #A78BFA
     static constexpr uint32_t kRoleDrumsHex         = 0xff818cf8; // Indigo #818CF8
     static constexpr uint32_t kRoleOtherHex         = 0xff38e1c6; // Cyan #38E1C6

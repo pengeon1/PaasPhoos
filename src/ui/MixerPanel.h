@@ -104,7 +104,7 @@ public:
                 remoteStrips[i]->setActive(true);
                 remoteStrips[i]->setChannelName(peerNames[i], peerRoles[i]);
                 remoteStrips[i]->setChannelColor(peerCols[i]);
-                remoteStrips[i]->setJitterBadge(juce::String(14 + i * 5) + " ms", juce::Colour(ThemeConfig::kRoleGuitar2Hex));
+                remoteStrips[i]->setJitterBadge(juce::String(14 + i * 5) + " ms", juce::Colour(ThemeConfig::kAccentCyanHex));
                 remoteStrips[i]->updateMeters(0.48f + i * 0.08f, 0.45f + i * 0.07f, false);
             }
         }

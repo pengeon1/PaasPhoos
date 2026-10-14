@@ -197,7 +197,7 @@ void ChannelStripComponent::paint(juce::Graphics& g)
         float fillY = (meterY + meterH) - filledHeight;
 
         juce::ColourGradient grad(juce::Colour(ThemeConfig::kAccentBlueHex), (float)x, (float)(meterY + meterH),
-                                  juce::Colour(ThemeConfig::kRoleVocalsHex), (float)x, (float)meterY, false);
+                                  juce::Colour(ThemeConfig::kAccentVioletHex), (float)x, (float)meterY, false);
         grad.addColour(0.65, juce::Colour(ThemeConfig::kAccentCyanHex));
         g.setGradientFill(grad);
         g.fillRoundedRectangle((float)x, fillY, (float)w, filledHeight, 1.5f);
@@ -213,9 +213,9 @@ void ChannelStripComponent::paint(juce::Graphics& g)
         drawSingleMeter(meterX, meterW, currentPeakL);
     }
 
-    // Clip LED
+    // Clip LED (Radiant Violet active / Dark Navy idle)
     int clipY = meterY - 10;
-    g.setColour(isClipped ? juce::Colour(ThemeConfig::kRoleVocalsHex) : juce::Colour(0xff221118));
+    g.setColour(isClipped ? juce::Colour(0xffc084fc) : juce::Colour(0xff161826));
     g.fillRoundedRectangle((float)meterX, (float)clipY, (float)meterW, 6.0f, 1.5f);
 }
 

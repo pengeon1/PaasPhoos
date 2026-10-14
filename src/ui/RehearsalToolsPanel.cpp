@@ -25,14 +25,14 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
 
     // 1. Multitrack Recorder
     recordButton.setButtonText("START REC (WAV)");
-    recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c)); // Red
+    recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff6366f1));
     recordButton.onClick = [this]()
     {
         if (recorder.isRecording())
         {
             recorder.stopRecording();
             recordButton.setButtonText("START REC (WAV)");
-            recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c));
+            recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff6366f1));
             recordTimerLabel.setText("Saved to Desktop", juce::dontSendNotification);
         }
         else
@@ -41,7 +41,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
             if (recorder.startRecording(dest, audioEngine.getCurrentSampleRate()))
             {
                 recordButton.setButtonText("STOP REC");
-                recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffdc2626));
+                recordButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7c5cff));
             }
         }
     };
@@ -138,7 +138,7 @@ RehearsalToolsPanel::RehearsalToolsPanel(SessionRecorder& rec,
 
     // 4. Latency Budget & Sim
     latencyBudgetLabel.setFont(Typography::numeric(11.0f));
-    latencyBudgetLabel.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));
+    latencyBudgetLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(latencyBudgetLabel);
 
     netSimToggle.setButtonText("Net Sim (+25ms / 2% Loss)");

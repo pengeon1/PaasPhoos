@@ -96,7 +96,7 @@ SessionPanel::SessionPanel(AudioEngine& engine)
             audioEngine.getLanTransport().startAsHost(port, localMusicianName, localInstrumentRole);
             audioEngine.getLanDiscovery().startHosting("PaasPhoos (" + localMusicianName + ")", localMusicianName, port);
             hostSessionButton.setButtonText("STOP HOSTING");
-            hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xffb91c1c));
+            hostSessionButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff4f46e5));
 
             auto localCode = StunClient::generateRoomCode(adapterInfo.ipAddress, port);
             currentActiveJamCode = localCode;
@@ -262,7 +262,8 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     addAndMakeVisible(sessionStatusBadge);
 
     disconnectButton.setButtonText("DISCONNECT");
-    disconnectButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff7f1d1d));
+    disconnectButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e1b38));
+    disconnectButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffc084fc));
     disconnectButton.onClick = [this]()
     {
         audioEngine.getLanDiscovery().stop();
@@ -315,16 +316,16 @@ SessionPanel::SessionPanel(AudioEngine& engine)
     healthStatusPill.setText("EXCELLENT", juce::dontSendNotification);
     healthStatusPill.setFont(Typography::labelCaps(9.5f));
     healthStatusPill.setJustificationType(juce::Justification::centred);
-    healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff14532d));
-    healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff4ade80));
+    healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff0e3a40));
+    healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     addAndMakeVisible(healthStatusPill);
 
     // Wi-Fi Warning
     adapterWarningLabel.setText("", juce::dontSendNotification);
     adapterWarningLabel.setFont(Typography::labelCaps(10.5f));
     adapterWarningLabel.setJustificationType(juce::Justification::centred);
-    adapterWarningLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff451a03));
-    adapterWarningLabel.setColour(juce::Label::textColourId, juce::Colour(0xfffbbf24));
+    adapterWarningLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e1b4b));
+    adapterWarningLabel.setColour(juce::Label::textColourId, juce::Colour(0xffa5b4fc));
     addChildComponent(adapterWarningLabel);
 
     updateAdapterWarning();
@@ -468,20 +469,20 @@ void SessionPanel::updateNetworkStatsDisplay()
         if (total < 25.0f && loss < 2.0f)
         {
             healthStatusPill.setText("EXCELLENT", juce::dontSendNotification);
-            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff14532d));
-            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff4ade80));
+            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff0e3a40));
+            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
         }
         else if (total < 45.0f && loss < 5.0f)
         {
             healthStatusPill.setText("GOOD", juce::dontSendNotification);
-            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff365314));
-            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xffa3e635));
+            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e1b4b));
+            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xff818cf8));
         }
         else
         {
             healthStatusPill.setText("DEGRADED", juce::dontSendNotification);
-            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff7f1d1d));
-            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xfff87171));
+            healthStatusPill.setColour(juce::Label::backgroundColourId, juce::Colour(0xff2a1b4e));
+            healthStatusPill.setColour(juce::Label::textColourId, juce::Colour(0xffc084fc));
         }
     }
 }

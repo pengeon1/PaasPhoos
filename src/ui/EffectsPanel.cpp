@@ -124,9 +124,9 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
     compMakeupSlider.onValueChange = [this]() { fxChain.setCompMakeup((float)compMakeupSlider.getValue()); };
 
     // ==========================================
-    // Module 4: 4-Band EQ (Emerald / Teal / Violet / Magenta)
+    // Module 4: 4-Band EQ (Sky Blue / Cyan / Indigo / Violet)
     // ==========================================
-    const juce::Colour kEqCol(0xff3ddc84);
+    const juce::Colour kEqCol(0xff38e1c6);
     eqToggle.setButtonText("4-Band EQ");
     eqToggle.setToggleState(true, juce::dontSendNotification);
     eqToggle.onStateChange = [this]() { fxChain.setEqEnabled(eqToggle.getToggleState()); };
@@ -146,33 +146,33 @@ EffectsPanel::EffectsPanel(BuiltInFxChain& chain, PluginHostManager& host)
         addAndMakeVisible(s);
     };
 
-    setupLabel(eqLowLabel, "LOW 80Hz", juce::Colour(0xff69f0ae));
-    setupEqSlider(eqLowSlider, 0.0f, juce::Colour(0xff3ddc84), juce::Colour(0xff69f0ae));
+    setupLabel(eqLowLabel, "LOW 80Hz", juce::Colour(0xff7dd3fc));
+    setupEqSlider(eqLowSlider, 0.0f, juce::Colour(0xff0ea5e9), juce::Colour(0xff7dd3fc));
     eqLowSlider.onValueChange = [this]() { fxChain.setEqLowGain((float)eqLowSlider.getValue()); };
 
-    setupLabel(eqMid1Label, "MID 500Hz", juce::Colour(0xff64ffda));
-    setupEqSlider(eqMid1Slider, 0.0f, juce::Colour(0xff38e1c6), juce::Colour(0xff64ffda));
+    setupLabel(eqMid1Label, "MID 500Hz", juce::Colour(0xff38e1c6));
+    setupEqSlider(eqMid1Slider, 0.0f, juce::Colour(0xff0284c7), juce::Colour(0xff38e1c6));
     eqMid1Slider.onValueChange = [this]() { fxChain.setEqMid1Gain((float)eqMid1Slider.getValue()); };
 
-    setupLabel(eqMid2Label, "MID 2.5k", juce::Colour(0xffb388ff));
-    setupEqSlider(eqMid2Slider, 0.0f, juce::Colour(0xff7c5cff), juce::Colour(0xffb388ff));
+    setupLabel(eqMid2Label, "MID 2.5k", juce::Colour(0xffa5b4fc));
+    setupEqSlider(eqMid2Slider, 0.0f, juce::Colour(0xff6366f1), juce::Colour(0xffa5b4fc));
     eqMid2Slider.onValueChange = [this]() { fxChain.setEqMid2Gain((float)eqMid2Slider.getValue()); };
 
-    setupLabel(eqHighLabel, "HIGH 8k", juce::Colour(0xffea80fc));
-    setupEqSlider(eqHighSlider, 0.0f, juce::Colour(0xffe040fb), juce::Colour(0xffea80fc));
+    setupLabel(eqHighLabel, "HIGH 8k", juce::Colour(0xffc084fc));
+    setupEqSlider(eqHighSlider, 0.0f, juce::Colour(0xff7c5cff), juce::Colour(0xffc084fc));
     eqHighSlider.onValueChange = [this]() { fxChain.setEqHighGain((float)eqHighSlider.getValue()); };
 
     // ==========================================
-    // Module 5: Reverb (Magenta / Neon Violet)
+    // Module 5: Reverb (Radiant Violet)
     // ==========================================
-    const juce::Colour kReverbCol(0xffe040fb);
+    const juce::Colour kReverbCol(0xff8b5cf6);
     reverbToggle.setButtonText("Reverb");
     reverbToggle.setToggleState(true, juce::dontSendNotification);
     reverbToggle.onStateChange = [this]() { fxChain.setReverbEnabled(reverbToggle.getToggleState()); };
     addAndMakeVisible(reverbToggle);
 
     setupLabel(reverbWetLabel, "MIX / WET", kReverbCol.brighter(0.2f));
-    setupKnob(reverbWetSlider, kReverbCol, juce::Colour(0xffff80ab));
+    setupKnob(reverbWetSlider, kReverbCol, juce::Colour(0xffc084fc));
     reverbWetSlider.setRange(0.0, 1.0, 0.02);
     reverbWetSlider.setValue(0.25, juce::dontSendNotification);
     reverbWetSlider.textFromValueFunction = [](double v) { return juce::String((int)(v * 100)) + "%"; };
@@ -280,8 +280,8 @@ void EffectsPanel::paint(juce::Graphics& g)
     drawModuleCard(0.0f, 1.0f, juce::Colour(0xff6366f1)); // Gate (Indigo)
     drawModuleCard(1.0f, 2.0f, juce::Colour(0xff2563eb)); // Drive (Royal Blue)
     drawModuleCard(3.0f, 2.0f, juce::Colour(0xff3da5ff)); // Comp (Electric Blue)
-    drawModuleCard(5.0f, 4.0f, juce::Colour(0xff38e1c6)); // EQ (Cyan / Teal)
-    drawModuleCard(9.0f, 1.0f, juce::Colour(0xffc084fc)); // Reverb (Purple / Magenta)
+    drawModuleCard(5.0f, 4.0f, juce::Colour(0xff38e1c6)); // EQ (Cyan / Blue)
+    drawModuleCard(9.0f, 1.0f, juce::Colour(0xff8b5cf6)); // Reverb (Radiant Violet)
 }
 
 void EffectsPanel::resized()

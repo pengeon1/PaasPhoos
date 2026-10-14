@@ -208,18 +208,21 @@ void AudioSettingsPanel::updateLatencyBadge()
 
     if (latencyMs <= 6.0)
     {
-        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff064e3b));
-        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff34d399));
+        // Ultra-low latency: Electric Cyan badge
+        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff0d2b3a));
+        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff38e1c6));
     }
     else if (latencyMs <= 12.0)
     {
-        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff78350f));
-        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xfffbbf24));
+        // Standard low latency: Deep Indigo / Sky Blue badge
+        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff1e1b4b));
+        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xff818cf8));
     }
     else
     {
-        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff7f1d1d));
-        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xfff87171));
+        // High latency: Radiant Violet badge
+        latencyBadgeLabel.setColour(juce::Label::backgroundColourId, juce::Colour(0xff2a1b4e));
+        latencyBadgeLabel.setColour(juce::Label::textColourId, juce::Colour(0xffc084fc));
     }
 }
 

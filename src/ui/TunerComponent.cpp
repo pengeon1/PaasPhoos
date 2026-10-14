@@ -101,7 +101,7 @@ void TunerComponent::paint(juce::Graphics& g)
     float meterHeight = meterArea.getHeight();
 
     // Center zero line (In Tune target)
-    g.setColour(juce::Colour(0xff10b981));
+    g.setColour(juce::Colour(0xff38e1c6));
     g.fillRect(centerX - 1.5f, meterY, 3.0f, meterHeight);
 
     // Needle position (-50 to +50 cents mapped to width)
